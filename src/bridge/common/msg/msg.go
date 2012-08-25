@@ -251,18 +251,20 @@ func Serialize(message *Message, dst io.Writer) error {
 }
 
 // Deserializes a message from given io.Reader. Is it possible to supply hook
-// function which can do arbitrary work with body part. This function should return
-// true if it has accepted this body part or false if simple body part processing
-// is required.
-func Deserialize(reader io.Reader, hook func (string, uint32, io.Reader) bool) (*Message, error) {
+// function which can do arbitrary work with body part. This function takes
+// body part name, size and input stream and should return true if it has accepted
+// this body part and processed it or false if simple body part processing is required.
+// It is possible for this function to return non-nil error, then first return value
+// is interpreted as follows: if it is true, then the processing should be stopped and an error
+// should be signaled; if it is false, the processing should continue. In first case
+// the input reader will be fully exhausted first.
+func Deserialize(reader io.Reader, hook func (string, uint32, io.Reader) (bool, error)) (*Message, error) {
     var msg Message
 
     headerSlice := make([]byte, 7)
-    n, err := reader.Read(headerSlice)
+    _, err := reader.Read(headerSlice)
     if err != nil {
         return nil, &SerializeError{"Error reading header", err}
-    } else if n != 7 {
-        return nil, &SerializeError{fmt.Sprintf("Incomplete header, read only %d bytes", n), nil}
     } else if (string(headerSlice[0:3]) != "MSG") {
         return nil, &SerializeError{"Message header was not found!", nil}
     }
