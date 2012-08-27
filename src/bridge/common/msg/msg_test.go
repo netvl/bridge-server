@@ -48,6 +48,12 @@ func (s *MsgSuite) TestMessageSerialization(t *C) {
     }
 }
 
+func readReader(r *bytes.Reader) []byte {
+    buf := make([]byte, r.Len())
+    r.Read(buf)
+    return buf
+}
+
 func (s *MsgSuite) TestMessageDeserialization(t *C) {
     data, _ := hex.DecodeString(EXAMPLE1_HEXDUMP)
     src := bytes.NewReader(data)
@@ -65,5 +71,16 @@ func (s *MsgSuite) TestMessageDeserialization(t *C) {
 
     t.Assert(msg.GetName(), Equals, tpl.GetName())
     t.Assert(msg.headers, DeepEquals, tpl.headers)
-    t.Assert(msg.bodyParts, DeepEquals, tpl.bodyParts)  // TODO: fix it
+
+    t.Assert(len(msg.bodyParts), Equals, len(tpl.bodyParts))
+
+    b1, ok := msg.bodyParts["bp1"].reader.(*bytes.Reader);
+    t.Assert(ok, Equals, true)
+    b2, _ := tpl.bodyParts["bp1"].reader.(*bytes.Reader)
+    t.Assert(readReader(b1), DeepEquals, readReader(b2))
+
+    b1, ok = msg.bodyParts["bp2"].reader.(*bytes.Reader)
+    t.Assert(ok, Equals, true)
+    b2, _ = tpl.bodyParts["bp2"].reader.(*bytes.Reader)
+    t.Assert(readReader(b1), DeepEquals, readReader(b2))
 }

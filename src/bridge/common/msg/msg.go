@@ -336,33 +336,39 @@ func Serialize(msg *Message, dst io.Writer) error {
 }
 
 func readUint8(src io.Reader) (uint8, error) {
-    var s uint8
+    var s [1]byte
 
-    if err := binary.Read(src, binary.LittleEndian, &s); err != nil {
+    if _, err := src.Read(s[:]); err != nil {
         return 0, makeError(err, "Error reading uint8");
     }
 
-    return s, nil
+    return s[0], nil
 }
 
 func readUint16(src io.Reader) (uint16, error) {
-    var s uint16
+    var s [2]byte
+    ss := s[:]
 
-    if err := binary.Read(src, binary.LittleEndian, &s); err != nil {
+    if n, err := src.Read(ss); n < 2 {
+        return 0, makeError(nil, "Unexpected end of stream while reading uint16")
+    } else if err != nil {
         return 0, makeError(err, "Error reading uint16")
     }
 
-    return s, nil
+    return binary.LittleEndian.Uint16(ss), nil
 }
 
 func readUint32(src io.Reader) (uint32, error) {
-    var s uint32
+    var s [4]byte
+    ss := s[:]
 
-    if err := binary.Read(src, binary.LittleEndian, &s); err != nil {
+    if n, err := src.Read(ss); n < 4 {
+        return 0, makeError(nil, "Unexpected end of stream while reading uint32")
+    } else if err != nil {
         return 0, makeError(err, "Error reading uint32")
     }
 
-    return s, nil
+    return binary.LittleEndian.Uint32(ss), nil
 }
 
 // DeserializeMessageName starts deserializing a message, loading message name and size from the given io.Reader.
@@ -496,14 +502,14 @@ func DeserializeMessageBodyParts(src io.Reader, msg *Message, hook DeserializeHo
         } else if !r {
             // Load body part in memory
             buf := make([]byte, vsz)
-            if n, err := io.CopyN(bytes.NewBuffer(buf), src, int64(vsz)); n < int64(vsz) {
+            if n, err := src.Read(buf); n < int(vsz) {
                 return makeErrorf(err, "Unexpected end of stream while reading %d body part name", i)
             } else if err != nil && !(err == io.EOF && i == int(sz)) {
                 // The condition above filters the case when we got EOF error reading the last body part,
                 // so it is not considered an error
                 return makeErrorf(err, "Error reading %d body part name", i)
             }
-            msg.bodyParts[name] = BodyPartFromReader(vsz, bytes.NewReader(buf))
+            msg.bodyParts[name] = BodyPartFromSlice(buf)
         }
     }
 
