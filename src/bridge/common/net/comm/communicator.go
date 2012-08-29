@@ -4,11 +4,10 @@
  *
  * @author Vladimir Matveev
  */
-package net
+package comm
 
 import (
     "net"
-    "bridge/common"
     "bridge/common/msg"
 )
 
@@ -29,7 +28,12 @@ type Communicator struct {
     conn net.TCPConn
 }
 
+func NewCommunicator() *Communicator {
+    return new(Communicator)
+}
+
 func (comm *Communicator) Communicate(node Node, msg *msg.Message) (*msg.Message, error) {
     return nil, nil
 }
+
 

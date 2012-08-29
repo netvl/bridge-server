@@ -10,7 +10,23 @@ import (
     "net"
 )
 
+type RemoteListenerConf struct {
+    TCPEnabled bool
+    TCPAddr net.TCPAddr
+
+    UDPEnabled bool
+    UDPAddr net.UDPAddr
+}
+
+type LocalListenerConf struct {
+    TCPEnabled bool
+    TCPAddr net.TCPAddr
+
+    UnixEnabled bool
+    UnixAddr net.UnixAddr
+}
+
 type Conf struct {
-    TCPListenAddr net.TCPAddr
-    UDPListenAddr net.UDPAddr
+    Remote RemoteListenerConf
+    Local LocalListenerConf
 }

@@ -7,18 +7,27 @@
 package bridge
 
 import (
-    "net"
     "bridge/common/conf"
+    "bridge/common/net/listener"
+    "bridge/common/net/comm"
 )
 
 type Bridge struct {
     localPlugins  map[string]LocalPlugin
     remotePlugins map[string]RemotePlugin
-    tcpConn net.Listener
+    localListener listener.Listener
+    remoteListener listener.Listener
+    communicator *comm.Communicator
 }
 
 func New() *Bridge {
-    return &Bridge{make(map[string]LocalPlugin), make(map[string]RemotePlugin)}
+    return &Bridge{
+        make(map[string]LocalPlugin),
+        make(map[string]RemotePlugin),
+        listener.NewLocalListener(),
+        listener.NewRemoteListener(),
+        comm.NewCommunicator(),
+    }
 }
 
 func (b *Bridge) AddLocalPlugin(id string, lp LocalPlugin) {
@@ -30,9 +39,16 @@ func (b *Bridge) AddRemotePlugin(id string, rp RemotePlugin) {
 }
 
 func (b *Bridge) Start(conf *conf.Conf) error {
+    b.localListener.SetHandler(makeLocalPluginsHandler(b.localPlugins, b.communicator))
+    b.localListener.Start(conf)
 
+    b.remoteListener.SetHandler(makeRemotePluginsHandler(b.remotePlugins, b.communicator))
+    b.remoteListener.Start(conf)
+
+    return nil
 }
 
 func (b *Bridge) Stop() {
-
+    b.localListener.Stop()
+    b.remoteListener.Stop()
 }

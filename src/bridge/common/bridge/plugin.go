@@ -15,6 +15,7 @@ type PluginType int
 const (
     PluginTypeTCP PluginType = iota
     PluginTypeUDP
+    PluginTypeUnix
 )
 
 type LocalPlugin interface {
