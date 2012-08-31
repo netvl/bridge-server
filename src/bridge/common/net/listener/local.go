@@ -20,14 +20,20 @@ type localListener struct {
     unixListener net.Listener
 }
 
+// NewLocalListener creates new local listener instance, that is, that kind of listener
+// which uses local part of configuration.
 func NewLocalListener() Listener {
     return new(localListener)
 }
 
+// SetHandler sets the handler which local listener will use when accepting connections.
 func (ll *localListener) SetHandler(handler Handler) {
     ll.handler = handler
 }
 
+// Start initializes listener from the given configuration and starts listening
+// on configured addresses. When an incoming connection comes, it will be handled
+// by a handler set previously with SetHandler.
 func (ll *localListener) Start(cfg *conf.Conf) {
     if cfg.Local.TCPEnabled {
         ll.tcpStopChan = make(StopChan)
@@ -72,6 +78,8 @@ func (ll *localListener) Start(cfg *conf.Conf) {
     }
 }
 
+// Stop terminates the listening process if it was started.
+// It is no-op when called on stopped listener.
 func (ll *localListener) Stop() {
     if ll.tcpStopChan != nil {
         ll.tcpStopChan.Stop()

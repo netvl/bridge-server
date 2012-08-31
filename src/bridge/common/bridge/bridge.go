@@ -8,16 +8,16 @@ package bridge
 
 import (
     "bridge/common/conf"
-    "bridge/common/net/listener"
     "bridge/common/net/comm"
+    "bridge/common/net/listener"
 )
 
 type Bridge struct {
-    localPlugins  map[string]LocalPlugin
-    remotePlugins map[string]RemotePlugin
-    localListener listener.Listener
+    localPlugins   map[string]LocalPlugin
+    remotePlugins  map[string]RemotePlugin
+    localListener  listener.Listener
     remoteListener listener.Listener
-    communicator *comm.Communicator
+    communicator   *comm.Communicator
 }
 
 func New() *Bridge {

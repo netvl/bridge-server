@@ -38,7 +38,7 @@ func (_ BridgeSuite) TestLocalHandling(c *C) {
     br := bridge.New()
     br.AddLocalPlugin("echo-plugin", &plugins.EchoPlugin{})
     br.Start(&cfg)
-    time.Sleep(100 * time.Millisecond)
+    time.Sleep(50 * time.Millisecond)
 
     cc, err := net.DialTCP("tcp4", nil, addr)
     c.Assert(err, IsNil)
@@ -78,7 +78,7 @@ func testEchoPlugin(cc net.Conn, c *C) {
     c.Assert(rm.GetHeader("hdr1"), Equals, m.GetHeader("hdr1"))
     c.Assert(rm.GetHeader("hdr2"), Equals, m.GetHeader("hdr2"))
 
-    err = msg.DeserializeMessageBodyParts(cc, rm, nil)
+    err = msg.DeserializeMessageBodyParts(cc, rm, msg.EmptyHook)
     c.Assert(err, IsNil)
     printCause(c, err)
 

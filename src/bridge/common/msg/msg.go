@@ -171,9 +171,9 @@ func (this *Message) SetBodyPart(name string, value *BodyPart) {
 // MSG____                    -- Message mark and 4-byte size
 // _{name}                    -- Message name size and the name itself
 // _                          -- Number of headers
-// _{h1-name}_{h1-value}      -- Header name size, header name, header value size, header value
+// _{h1-name}__{h1-value}     -- Header name size, header name, header value size, header value
 // ...
-// _{hn-name}_{hn-value}
+// _{hn-name}__{hn-value}
 // _                          -- Number of body parts
 // _{bp1-name}____{bp1-body}  -- Body part name size, body part name, body part size, body part content
 // ...
@@ -349,8 +349,8 @@ func readUint16(src io.Reader) (uint16, error) {
     var s [2]byte
     ss := s[:]
 
-    if n, err := src.Read(ss); n < 2 {
-        return 0, makeError(nil, "Unexpected end of stream while reading uint16")
+    if n, err := io.ReadFull(src, ss); n < len(ss) {
+        return 0, makeError(err, "Unexpected end of stream while reading uint16")
     } else if err != nil {
         return 0, makeError(err, "Error reading uint16")
     }
@@ -362,8 +362,8 @@ func readUint32(src io.Reader) (uint32, error) {
     var s [4]byte
     ss := s[:]
 
-    if n, err := src.Read(ss); n < 4 {
-        return 0, makeError(nil, "Unexpected end of stream while reading uint32")
+    if n, err := io.ReadFull(src, ss); n < len(ss) {
+        return 0, makeError(err, "Unexpected end of stream while reading uint32")
     } else if err != nil {
         return 0, makeError(err, "Error reading uint32")
     }
@@ -378,9 +378,10 @@ func DeserializeMessageName(src io.Reader) (*Message, error) {
 
     // Read and check message mark and message size
     buf := make([]byte, 7)
-    n, err := src.Read(buf)
+    n, err := io.ReadFull(src, buf)
     if n < 7 {
-        return nil, makeError(nil, "Unexpected end of stream while reading message mark and size")
+        return nil, makeErrorf(err,
+            "Unexpected end of stream while reading message mark and size, read %d bytes", n)
     } else if err != nil {
         return nil, makeError(err, "Error reading message mark and size")
     } else if string(buf[0:3]) != "MSG" {
@@ -393,7 +394,7 @@ func DeserializeMessageName(src io.Reader) (*Message, error) {
         return nil, makeError(err, "Error reading message name size")
     }
     buf = make([]byte, int(sz))
-    if n, err := src.Read(buf); n < int(sz) {
+    if n, err := io.ReadFull(src, buf); n < int(sz) {
         return nil, makeError(err, "Unexpected end of stream while reading message name")
     } else if err != nil {
         return nil, makeError(err, "Error reading message name")
@@ -420,7 +421,7 @@ func DeserializeMessageHeaders(src io.Reader, msg *Message) error {
             return makeErrorf(err, "Error reading %d header name size", i)
         }
         buf := make([]byte, int(hsz))
-        if n, err := src.Read(buf); n < int(hsz) {
+        if n, err := io.ReadFull(src, buf); n < int(hsz) {
             return makeErrorf(err, "Unexpected end of stream while reading %d header name", i)
         } else if err != nil {
             return makeErrorf(err, "Error reading %d header name", i)
@@ -433,7 +434,7 @@ func DeserializeMessageHeaders(src io.Reader, msg *Message) error {
             return makeErrorf(err, "Error reading %d header name size", i)
         }
         buf = make([]byte, int(vsz))
-        if n, err := src.Read(buf); n < int(vsz) {
+        if n, err := io.ReadFull(src, buf); n < int(vsz) {
             return makeErrorf(err, "Unexpected end of stream while reading %d header value", i)
         } else if err != nil {
             return makeErrorf(err, "Error reading %d header value", i)
@@ -477,24 +478,27 @@ func DeserializeMessageBodyParts(src io.Reader, msg *Message, hook DeserializeHo
 
     // Read body parts
     for i := 1; i <= int(sz); i++ {
-        // Read body part name
+        // Read body part name size
         hsz, err := readUint8(src)
         if err != nil {
             return makeErrorf(err, "Error reading %d body part name size", i)
         }
+
+        // Read body part name
         buf := make([]byte, int(hsz))
-        if n, err := src.Read(buf); n < int(hsz) {
+        if n, err := io.ReadFull(src, buf); n < int(hsz) {
             return makeErrorf(err, "Unexpected end of stream while reading %d body part name", i)
         } else if err != nil {
             return makeErrorf(err, "Error reading %d body part name")
         }
         name := string(buf)
 
-        // Read body part value
+        // Read body part value size
         vsz, err := readUint32(src)
         if err != nil {
             return makeErrorf(err, "Error reading %d body part content size", i)
         }
+
         // Try to apply a hook first
         r, err := hook(name, vsz, src)
         if err != nil {
@@ -504,7 +508,7 @@ func DeserializeMessageBodyParts(src io.Reader, msg *Message, hook DeserializeHo
         } else if !r {
             // Load body part in memory
             buf := make([]byte, vsz)
-            if n, err := src.Read(buf); n < int(vsz) {
+            if n, err := io.ReadFull(src, buf); n < int(vsz) {
                 return makeErrorf(err, "Unexpected end of stream while reading %d body part name", i)
             } else if err != nil && !(err == io.EOF && i == int(sz)) {
                 // The condition above filters the case when we got EOF error reading the last body part,
