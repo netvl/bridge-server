@@ -9,12 +9,15 @@ package listener
 import (
     "net"
     "bridge/common/conf"
+    "log"
 )
 
 type localListener struct {
     handler      Handler
     tcpStopChan  StopChan
+    tcpListener  net.Listener
     unixStopChan StopChan
+    unixListener net.Listener
 }
 
 func NewLocalListener() Listener {
@@ -25,33 +28,6 @@ func (ll *localListener) SetHandler(handler Handler) {
     ll.handler = handler
 }
 
-func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
-    for {
-        // Check if we have to exit
-        if stopChan.Stopped() {
-            break
-        }
-
-        // Accept a connection
-        conn, err := listener.Accept()
-        if err != nil {
-            // TODO: error handling
-            // for now, just continue
-            continue
-        }
-
-        // Handle the connection
-        if handler != nil {
-            handler(conn)
-        }
-
-        // Close the connection
-        if err := listener.Close(); err != nil {
-            // TODO: error handling
-        }
-    }
-}
-
 func (ll *localListener) Start(cfg *conf.Conf) {
     if cfg.Local.TCPEnabled {
         ll.tcpStopChan = make(StopChan)
@@ -59,8 +35,11 @@ func (ll *localListener) Start(cfg *conf.Conf) {
             // Create TCP socket listener
             tcp, err := net.ListenTCP("tcp", &cfg.Local.TCPAddr)
             if err != nil {
-                // TODO: error handling
+                // TODO: proper error handling
+                log.Printf("Error: %v", err)
+                return
             }
+            ll.tcpListener = tcp
 
             listenOn(tcp, ll.tcpStopChan, ll.handler)
 
@@ -77,8 +56,11 @@ func (ll *localListener) Start(cfg *conf.Conf) {
             // Create UNIX socket listener
             unix, err := net.ListenUnix("unix", &cfg.Local.UnixAddr)
             if err != nil {
-                // TODO: error handling
+                // TODO: proper error handling
+                log.Printf("Error: %v", err)
+                return
             }
+            ll.unixListener = unix
 
             listenOn(unix, ll.unixStopChan, ll.handler)
 
@@ -94,10 +76,12 @@ func (ll *localListener) Stop() {
     if ll.tcpStopChan != nil {
         ll.tcpStopChan.Stop()
         ll.tcpStopChan = nil
+        ll.tcpListener.Close()
     }
 
     if ll.unixStopChan != nil {
         ll.unixStopChan.Stop()
         ll.unixStopChan = nil
+        ll.unixListener.Close()
     }
 }

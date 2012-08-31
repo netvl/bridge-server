@@ -22,11 +22,11 @@ type Bridge struct {
 
 func New() *Bridge {
     return &Bridge{
-        make(map[string]LocalPlugin),
-        make(map[string]RemotePlugin),
-        listener.NewLocalListener(),
-        listener.NewRemoteListener(),
-        comm.NewCommunicator(),
+        localPlugins:   make(map[string]LocalPlugin),
+        remotePlugins:  make(map[string]RemotePlugin),
+        localListener:  listener.NewLocalListener(),
+        remoteListener: listener.NewRemoteListener(),
+        communicator:   comm.NewCommunicator(),
     }
 }
 

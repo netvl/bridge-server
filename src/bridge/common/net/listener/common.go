@@ -23,8 +23,15 @@ func (ch StopChan) Stopped() bool {
     return false
 }
 
+func (ch StopChan) Wait() {
+    _ = <-ch
+}
+
 func (ch StopChan) Stop() {
-    ch <- nil
+    select {
+    case ch <- nil:
+    default:
+    }
     close(ch)
 }
 
@@ -34,6 +41,33 @@ type Listener interface {
     SetHandler(handler Handler)
     Start(cfg *conf.Conf)
     Stop()
+}
+
+func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
+    for {
+        // Check if we have to exit
+        if stopChan.Stopped() {
+            break
+        }
+
+        // Accept a connection
+        conn, err := listener.Accept()
+        if err != nil {
+            // TODO: error handling
+            // for now, just continue
+            continue
+        }
+
+        // Handle the connection
+        if handler != nil {
+            handler(conn)
+        }
+
+        // Close the connection
+        if err := conn.Close(); err != nil {
+            // TODO: error handling
+        }
+    }
 }
 
 

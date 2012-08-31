@@ -377,9 +377,11 @@ func DeserializeMessageName(src io.Reader) (*Message, error) {
     var msg *Message = CreateEmpty()
 
     // Read and check message mark and message size
-    buf := make([]byte,7)
+    buf := make([]byte, 7)
     n, err := src.Read(buf)
-    if n < 7 || err != nil {
+    if n < 7 {
+        return nil, makeError(nil, "Unexpected end of stream while reading message mark and size")
+    } else if err != nil {
         return nil, makeError(err, "Error reading message mark and size")
     } else if (string(buf[0:3]) != "MSG") {
         return nil, makeError(err, "Message header was not found")
