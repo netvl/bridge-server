@@ -7,10 +7,10 @@
 package msg
 
 import (
-    "encoding/binary"
     "bytes"
-    "io"
+    "encoding/binary"
     "fmt"
+    "io"
     "sort"
 )
 
@@ -79,8 +79,8 @@ func (this *BodyPart) Read(dst []byte) (int, error) {
 // Message represents a message which bridge nodes send to each other. Message has a name,
 // a set of named headers and a set of named body parts.
 type Message struct {
-    name string
-    headers map[string]string
+    name      string
+    headers   map[string]string
     bodyParts map[string]*BodyPart
 }
 
@@ -105,7 +105,7 @@ func (this *Message) GetHeader(name string) string {
 
 // GetHeaderNames returns a slice containing all header names in lexicographical order.
 func (this *Message) GetHeaderNames() []string {
-    names := make([]string,len(this.headers))
+    names := make([]string, len(this.headers))
     i := 0
     for k := range this.headers {
         names[i] = k
@@ -117,7 +117,7 @@ func (this *Message) GetHeaderNames() []string {
 
 // ForEachHeader executes certain action for each header, providing it with header name
 // and value.
-func (this *Message) ForEachHeader(f func (string, string)) {
+func (this *Message) ForEachHeader(f func(string, string)) {
     for k, v := range this.headers {
         f(k, v)
     }
@@ -130,7 +130,7 @@ func (this *Message) GetBodyPart(name string) *BodyPart {
 
 // GetBodyPartNames returns a slice containing all body part names in lexicographical order.
 func (this *Message) GetBodyPartNames() []string {
-    names := make([]string,len(this.bodyParts))
+    names := make([]string, len(this.bodyParts))
     i := 0
     for k := range this.bodyParts {
         names[i] = k
@@ -142,7 +142,7 @@ func (this *Message) GetBodyPartNames() []string {
 
 // ForEachBodyPart executes certain action for each body part, providing it with body part name
 // and content.
-func (this *Message) ForEachBodyPart(f func (string, *BodyPart)) {
+func (this *Message) ForEachBodyPart(f func(string, *BodyPart)) {
     for k, v := range this.bodyParts {
         f(k, v)
     }
@@ -180,7 +180,7 @@ func (this *Message) SetBodyPart(name string, value *BodyPart) {
 // _{bpm-name}____{bpm-body}
 
 func computeHeadersSize(msg *Message) uint32 {
-    var headersLength uint32 = 1  // Headers number
+    var headersLength uint32 = 1 // Headers number
     for k, v := range msg.headers {
         // Header name size + header name + header value size + header value
         headersLength += 1 + uint32(len(k)) + 2 + uint32(len(v))
@@ -198,7 +198,7 @@ func computeBodyPartsSize(msg *Message) uint32 {
 }
 
 func computeMessageSize(msg *Message) uint32 {
-    var totalLength uint32 = 0  // 'MSG' initial string plus message size field are not considered as size
+    var totalLength uint32 = 0 // 'MSG' initial string plus message size field are not considered as size
 
     // Name size field + name
     nameLength := uint32(len(msg.name)) + 1
@@ -212,10 +212,10 @@ func computeMessageSize(msg *Message) uint32 {
 
 func serializeBodyPart(name string, body *BodyPart, dst io.Writer) error {
     // Write body part name and size
-    buf := make([]byte,1 + len(name) + 4)
+    buf := make([]byte, 1+len(name)+4)
     buf[0] = uint8(len(name))
     copy(buf[1:], []byte(name))
-    binary.LittleEndian.PutUint32(buf[len(name) + 1:], body.size)
+    binary.LittleEndian.PutUint32(buf[len(name)+1:], body.size)
     if _, err := dst.Write(buf); err != nil {
         return makeError(err, "Error writing body part name and size")
     }
@@ -286,7 +286,7 @@ func Serialize(msg *Message, dst io.Writer) error {
     }
 
     // Write message name
-    buf = make([]byte, 1 + len(msg.name))
+    buf = make([]byte, 1+len(msg.name))
     buf[0] = uint8(len(msg.name))
     copy(buf[1:], []byte(msg.name))
     if _, err := dst.Write(buf); err != nil {
@@ -306,13 +306,13 @@ func Serialize(msg *Message, dst io.Writer) error {
         // Write header name
         buf[i] = uint8(len(k))
         i += 1
-        copy(buf[i:i + len(k)], []byte(k))
+        copy(buf[i:i+len(k)], []byte(k))
         i += len(k)
 
         // Write header value
-        binary.LittleEndian.PutUint16(buf[i:i + 2], uint16(len(v)))
+        binary.LittleEndian.PutUint16(buf[i:i+2], uint16(len(v)))
         i += 2
-        copy(buf[i:i + len(v)], []byte(v))
+        copy(buf[i:i+len(v)], []byte(v))
         i += len(v)
     }
     if _, err := dst.Write(buf); err != nil {
@@ -339,7 +339,7 @@ func readUint8(src io.Reader) (uint8, error) {
     var s [1]byte
 
     if _, err := src.Read(s[:]); err != nil {
-        return 0, makeError(err, "Error reading uint8");
+        return 0, makeError(err, "Error reading uint8")
     }
 
     return s[0], nil
@@ -383,7 +383,7 @@ func DeserializeMessageName(src io.Reader) (*Message, error) {
         return nil, makeError(nil, "Unexpected end of stream while reading message mark and size")
     } else if err != nil {
         return nil, makeError(err, "Error reading message mark and size")
-    } else if (string(buf[0:3]) != "MSG") {
+    } else if string(buf[0:3]) != "MSG" {
         return nil, makeError(err, "Message header was not found")
     }
 
@@ -447,12 +447,12 @@ func DeserializeMessageHeaders(src io.Reader, msg *Message) error {
 }
 
 // Represents a hook which can be installed into deserialization process.
-type DeserializeHook func (name string, size uint32, src io.Reader) (bool, error)
+type DeserializeHook func(name string, size uint32, src io.Reader) (bool, error)
 
 // EmptyHook is a function of type DeserializeHook which always returns false;
 // because of this deserializing body parts with this hook results in loading the message
 // completely in memory
-var EmptyHook = func (string, uint32, io.Reader) (bool, error) { return false, nil }
+var EmptyHook = func(string, uint32, io.Reader) (bool, error) { return false, nil }
 
 // Deserializes body parts from the given io.Reader and puts them into specified Message.
 // This function is supposed to be called after DeserializeMessageHeader function.

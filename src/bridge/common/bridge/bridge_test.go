@@ -8,12 +8,12 @@ package bridge_test
 
 import (
     "bridge/common/bridge"
-    . "launchpad.net/gocheck"
-    "testing"
     "bridge/common/conf"
-    "net"
-    "bridge/common/plugins"
     "bridge/common/msg"
+    "bridge/common/plugins"
+    . "launchpad.net/gocheck"
+    "net"
+    "testing"
     "time"
 )
 
@@ -21,7 +21,8 @@ func Test(t *testing.T) {
     TestingT(t)
 }
 
-type BridgeSuite struct {}
+type BridgeSuite struct{}
+
 var _ = Suite(BridgeSuite{})
 
 func (_ BridgeSuite) TestLocalHandling(c *C) {
@@ -30,7 +31,7 @@ func (_ BridgeSuite) TestLocalHandling(c *C) {
         Remote: conf.RemoteListenerConf{},
         Local: conf.LocalListenerConf{
             TCPEnabled: true,
-            TCPAddr: *addr,
+            TCPAddr:    *addr,
         },
     }
 
