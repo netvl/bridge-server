@@ -10,23 +10,28 @@ import (
     "net"
 )
 
-type RemoteListenerConf struct {
-    TCPEnabled bool
-    TCPAddr net.TCPAddr
+// PortType designates a network of given port. It has the same values
+// as standard net functions accept.
+type PortType string
 
-    UDPEnabled bool
-    UDPAddr net.UDPAddr
+const (
+    PortTypeTCP4 PortType = "tcp4"
+    PortTypeUDP4 PortType = "udp4"
+    PortTypeTCP6 PortType = "tcp6"
+    PortTypeUDP6 PortType = "udp6"
+    PortTypeUnix PortType = "unix"
+)
+
+type PortConf struct {
+    Type PortType
+    Addr net.Addr
 }
 
-type LocalListenerConf struct {
-    TCPEnabled bool
-    TCPAddr net.TCPAddr
-
-    UnixEnabled bool
-    UnixAddr net.UnixAddr
+type ListenerConf struct {
+    Name  string
+    Ports []*PortConf
 }
 
 type Conf struct {
-    Remote RemoteListenerConf
-    Local LocalListenerConf
+    Listeners map[string]*ListenerConf
 }

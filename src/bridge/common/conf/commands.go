@@ -2,7 +2,6 @@ package conf
 
 import (
     "code.google.com/p/gelo"
-    "log"
 )
 
 var confCommands = map[string]interface{}{
@@ -16,7 +15,6 @@ func conf(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     }
     name := vm.API.SymbolOrElse(args.Value)
     body := vm.API.QuoteOrElse(args.Next.Value)
-    log.Println("In conf:", name)
 
     d := getOrMakeDict(vm)
 
@@ -26,7 +24,6 @@ func conf(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     vm.Ns.Unfork()
     d.Set(name, value)
 
-    log.Println("Returning from conf", name)
     return d
 }
 
@@ -35,7 +32,6 @@ func set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
         gelo.ArgumentError(vm, "set", "name [args*]", args)
     }
     name := vm.API.SymbolOrElse(args.Value)
-    log.Println("In set:", name)
 
     // Check that all arguments are symbols
     for tmp := args; tmp != nil; tmp = tmp.Next {
@@ -57,7 +53,6 @@ func set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     d := getOrMakeDict(vm)
     d.Set(name, values)
 
-    log.Println("Returning from set", name)
     return d
 }
 

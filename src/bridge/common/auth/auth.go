@@ -5,4 +5,3 @@
  * @author Vladimir Matveev
  */
 package auth
-

@@ -7,7 +7,6 @@
 package listener
 
 import (
-    "bridge/common/conf"
     "log"
     "net"
     "syscall"
@@ -43,16 +42,7 @@ func (ch StopChan) Stop() {
 
 // Handler is a function which is able to handle standard connection.
 // It is supposed that the handler itself does not close the connection.
-type Handler func (net.Conn)
-
-// Listener is an entity which can start listening for external connections
-// and transfer control to provided handler when a connection was received.
-// It is also should be possible to stop listener.
-type Listener interface {
-    SetHandler(handler Handler)
-    Start(cfg *conf.Conf)
-    Stop()
-}
+type Handler func(net.Conn)
 
 func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
     for {
@@ -67,7 +57,7 @@ func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
             // TODO: proper error handling
             // for now, just log and continue
             if operr, ok := err.(*net.OpError); ok {
-                if operr.Err == syscall.ECONNABORTED {  // The listener has been closed externally
+                if operr.Err == syscall.ECONNABORTED { // The listener has been closed externally
                     break
                 }
             }
@@ -87,5 +77,3 @@ func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
         }
     }
 }
-
-

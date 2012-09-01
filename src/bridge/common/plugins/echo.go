@@ -12,7 +12,7 @@ import (
     "bridge/common/net/comm"
 )
 
-type EchoPlugin struct {}
+type EchoPlugin struct{}
 
 func (_ *EchoPlugin) Name() string {
     return "echo"
@@ -33,4 +33,3 @@ func (_ *EchoPlugin) DeserializeHook() msg.DeserializeHook {
 func (_ *EchoPlugin) HandleMessage(msg *msg.Message, c *comm.Communicator) *msg.Message {
     return msg
 }
-

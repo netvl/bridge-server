@@ -26,7 +26,7 @@ func LoadConfig(file string) *Conf {
     if err != nil {
         log.Printf("VM error: %v", err)
     } else {
-        log.Println(result.Ser())
+        log.Println(result)
     }
 
     return nil

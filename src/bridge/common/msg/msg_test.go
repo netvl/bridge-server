@@ -7,10 +7,10 @@
 package msg
 
 import (
-    . "launchpad.net/gocheck"
-    "testing"
     "bytes"
     "encoding/hex"
+    . "launchpad.net/gocheck"
+    "testing"
 )
 
 const (
@@ -31,7 +31,8 @@ func Test(t *testing.T) {
     TestingT(t)
 }
 
-type MsgSuite struct {}
+type MsgSuite struct{}
+
 var _ = Suite(&MsgSuite{})
 
 func (s *MsgSuite) TestMessageSerialization(t *C) {
@@ -74,7 +75,7 @@ func (s *MsgSuite) TestMessageDeserialization(t *C) {
 
     t.Assert(len(msg.bodyParts), Equals, len(tpl.bodyParts))
 
-    b1, ok := msg.bodyParts["bp1"].reader.(*bytes.Reader);
+    b1, ok := msg.bodyParts["bp1"].reader.(*bytes.Reader)
     t.Assert(ok, Equals, true)
     b2, _ := tpl.bodyParts["bp1"].reader.(*bytes.Reader)
     t.Assert(readReader(b1), DeepEquals, readReader(b2))

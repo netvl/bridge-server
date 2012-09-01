@@ -7,8 +7,8 @@
 package comm
 
 import (
-    "net"
     "bridge/common/msg"
+    "net"
 )
 
 type Node struct {
@@ -35,5 +35,3 @@ func NewCommunicator() *Communicator {
 func (comm *Communicator) Communicate(node Node, msg *msg.Message) (*msg.Message, error) {
     return nil, nil
 }
-
-

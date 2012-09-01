@@ -7,14 +7,14 @@
 package bridge
 
 import (
-    "net"
+    "bridge/common/msg"
     "bridge/common/net/comm"
     "bridge/common/net/listener"
-    "bridge/common/msg"
     "log"
+    "net"
 )
 
-func makeLocalPluginsHandler(plugins map[string]LocalPlugin, c *comm.Communicator) listener.Handler {
+func makePluginsHandler(plugins map[string]Plugin, c *comm.Communicator) listener.Handler {
     return func(conn net.Conn) {
         // Load message name and headers
         m, err := msg.DeserializeMessageName(conn)
@@ -35,6 +35,10 @@ func makeLocalPluginsHandler(plugins map[string]LocalPlugin, c *comm.Communicato
                 if p.PluginTypes()[PluginTypeTCP] {
                     doHandle = true
                 }
+            case *net.UDPConn:
+                if p.PluginTypes()[PluginTypeUDP] {
+                    doHandle = true
+                }
             case *net.UnixConn:
                 if p.PluginTypes()[PluginTypeUnix] {
                     doHandle = true
@@ -44,23 +48,15 @@ func makeLocalPluginsHandler(plugins map[string]LocalPlugin, c *comm.Communicato
             if doHandle && p.SupportsMessage(m.GetName()) {
                 if err := msg.DeserializeMessageBodyParts(conn, m, p.DeserializeHook()); err != nil {
                     log.Printf("Bridge local plugin handler message body parts deserialization error: %v", err)
-                    break;
+                    break
                 }
                 rm := p.HandleMessage(m, c)
                 if err := msg.Serialize(rm, conn); err != nil {
                     log.Printf("Bridge local plugin handler message serialization error: %v", err)
-                    break;
+                    break
                 }
-                break;
+                break
             }
         }
     }
 }
-
-func makeRemotePluginsHandler(plugins map[string]RemotePlugin, c *comm.Communicator) listener.Handler {
-    return func(conn net.Conn) {
-
-    }
-}
-
-

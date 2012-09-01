@@ -27,17 +27,23 @@ var _ = Suite(BridgeSuite{})
 
 func (_ BridgeSuite) TestLocalHandling(c *C) {
     addr, _ := net.ResolveTCPAddr("tcp4", "127.0.0.1:12345")
-    cfg := conf.Conf{
-        Remote: conf.RemoteListenerConf{},
-        Local: conf.LocalListenerConf{
-            TCPEnabled: true,
-            TCPAddr:    *addr,
+    cfg := &conf.Conf{
+        Listeners: map[string]*conf.ListenerConf{
+            "local": &conf.ListenerConf{
+                Name: "local",
+                Ports: []*conf.PortConf{
+                    &conf.PortConf{
+                        Type: conf.PortTypeTCP4,
+                        Addr: addr,
+                    },
+                },
+            },
         },
     }
 
-    br := bridge.New()
-    br.AddLocalPlugin("echo-plugin", &plugins.EchoPlugin{})
-    br.Start(&cfg)
+    br := bridge.New(cfg)
+    br.AddPlugin("echo-plugin", new(plugins.EchoPlugin))
+    br.Start()
     time.Sleep(50 * time.Millisecond)
 
     cc, err := net.DialTCP("tcp4", nil, addr)

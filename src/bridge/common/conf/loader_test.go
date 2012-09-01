@@ -1,8 +1,8 @@
 package conf_test
 
 import (
-    "testing"
     "bridge/common/conf"
+    "testing"
 )
 
 func TestLoading(t *testing.T) {

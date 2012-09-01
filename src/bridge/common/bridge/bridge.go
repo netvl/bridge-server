@@ -13,42 +13,41 @@ import (
 )
 
 type Bridge struct {
-    localPlugins   map[string]LocalPlugin
-    remotePlugins  map[string]RemotePlugin
-    localListener  listener.Listener
-    remoteListener listener.Listener
-    communicator   *comm.Communicator
+    plugins      map[string]Plugin
+    listeners    []*listener.Listener
+    communicator *comm.Communicator
 }
 
-func New() *Bridge {
-    return &Bridge{
-        localPlugins:   make(map[string]LocalPlugin),
-        remotePlugins:  make(map[string]RemotePlugin),
-        localListener:  listener.NewLocalListener(),
-        remoteListener: listener.NewRemoteListener(),
-        communicator:   comm.NewCommunicator(),
+func New(cfg *conf.Conf) *Bridge {
+    b := &Bridge{
+        plugins:      make(map[string]Plugin),
+        listeners:    make([]*listener.Listener, 0, 2),
+        communicator: comm.NewCommunicator(),
     }
+
+    for _, lconf := range cfg.Listeners {
+        b.listeners = append(b.listeners, listener.NewListener(lconf))
+    }
+
+    return b
 }
 
-func (b *Bridge) AddLocalPlugin(id string, lp LocalPlugin) {
-    b.localPlugins[id] = lp
+func (b *Bridge) AddPlugin(id string, lp Plugin) {
+    b.plugins[id] = lp
 }
 
-func (b *Bridge) AddRemotePlugin(id string, rp RemotePlugin) {
-    b.remotePlugins[id] = rp
-}
-
-func (b *Bridge) Start(conf *conf.Conf) error {
-    b.localListener.SetHandler(makeLocalPluginsHandler(b.localPlugins, b.communicator))
-    b.localListener.Start(conf)
-
-    b.remoteListener.SetHandler(makeRemotePluginsHandler(b.remotePlugins, b.communicator))
-    b.remoteListener.Start(conf)
+func (b *Bridge) Start() error {
+    h := makePluginsHandler(b.plugins, b.communicator)
+    for _, l := range b.listeners {
+        l.SetHandler(h)
+        l.Start()
+    }
 
     return nil
 }
 
 func (b *Bridge) Stop() {
-    b.localListener.Stop()
-    b.remoteListener.Stop()
+    for _, l := range b.listeners {
+        l.Stop()
+    }
 }

@@ -19,21 +19,13 @@ const (
     PluginTypeUnix
 )
 
-var AllPluginTypes = map[PluginType]bool {
-    PluginTypeTCP: true,
-    PluginTypeUDP: true,
+var AllPluginTypes = map[PluginType]bool{
+    PluginTypeTCP:  true,
+    PluginTypeUDP:  true,
     PluginTypeUnix: true,
 }
 
-type LocalPlugin interface {
-    Name() string
-    PluginTypes() map[PluginType]bool
-    SupportsMessage(name string) bool
-    DeserializeHook() msg.DeserializeHook
-    HandleMessage(msg *msg.Message, c *comm.Communicator) *msg.Message
-}
-
-type RemotePlugin interface {
+type Plugin interface {
     Name() string
     PluginTypes() map[PluginType]bool
     SupportsMessage(name string) bool
