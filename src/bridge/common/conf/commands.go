@@ -39,7 +39,7 @@ func set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
         _, oknum := tmp.Value.(*gelo.Number)
         _, okbool := tmp.Value.(gelo.Bool)
         if !oksym && !oknum && !okbool {
-            gelo.RuntimeError(vm, "Arguments should be symbols or numbers")
+            gelo.RuntimeError(vm, "Arguments should be symbols or numbers or booleans")
         }
     }
 

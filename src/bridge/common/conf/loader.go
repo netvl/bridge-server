@@ -17,17 +17,19 @@ func LoadConfig(file string) *Conf {
     vm.RegisterBundle(confCommands)
 
     f, err := os.Open(file)
-    defer f.Close()
     if err != nil {
         log.Printf("Error opening config file: %v", err)
         return nil
     }
+    defer f.Close()
+
     result, err := vm.Run(f, nil)
     if err != nil {
         log.Printf("VM error: %v", err)
-    } else {
-        log.Println(result)
+        return nil
     }
 
-    return nil
+    rd, _ := result.(*gelo.Dict)
+
+    return buildConfig(rd)
 }
