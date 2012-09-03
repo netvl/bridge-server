@@ -52,7 +52,7 @@ func convertDict(d *gelo.Dict) map[string]configElement {
             ce := convertList(cw)
             rm[k] = configEntry(ce)
         default:
-            panic(fmt.Sprintf("Illegal object %v encountered at key %v inside %v dict", w, k, d))
+            panic(newConfigError("", "Illegal object %v encountered at key %v inside %v dict", w, k, d))
         }
     }
 
@@ -67,32 +67,60 @@ func convertList(l *gelo.List) []string {
     return rl
 }
 
-func buildConfig(d *gelo.Dict) *Conf {
+func convertDictSafe(d *gelo.Dict) (cm map[string]configElement, err error) {
+    defer func() {
+        v := recover()
+        if v != nil {
+            if e, ok := v.(*ConfigError); ok {
+                err = e
+            } else {
+                panic(v)
+            }
+        }
+    }()
+
+    return convertDict(d), nil
+}
+
+func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
+    errs := makeConfigErrors()
+
     cfg := &Conf{
         Listeners: make(map[string]*ListenerConf),
     }
 
-    cfgmap := convertDict(d)
-
-    if glmap, ok := cfgmap["listeners"]; ok {
-        loadListeners(cfg, glmap.AsDict())
+    cfgmap, err := convertDictSafe(d);
+    if err != nil {
+        return nil, errs.AddError(err.(*ConfigError))
     }
 
-    return cfg
+
+    if glmap, ok := cfgmap["listeners"]; ok {
+        loadListeners(errs, cfg, glmap.AsDict())
+    }
+
+    return cfg, errs
 }
 
-func loadListeners(cfg *Conf, lmap map[string]configElement) {
+func loadListeners(errs *ConfigErrors, cfg *Conf, lmap map[string]configElement) {
     for lname, gpmap := range lmap {
         lcfg := &ListenerConf{Name: lname}
-        loadListenerPorts(lcfg, gpmap.AsDict())
+        perrs := makeConfigErrors()
+
+        loadListenerPorts(perrs, lcfg, gpmap.AsDict())
+
+        perrs.PrependLocation("listener " + lname)
+        errs.Merge(perrs)
+
         cfg.Listeners[lname] = lcfg
     }
 }
 
-func loadListenerPorts(lcfg *ListenerConf, pmap map[string]configElement) {
+func loadListenerPorts(errs *ConfigErrors, lcfg *ListenerConf, pmap map[string]configElement) {
     for pname, gpcfgmap := range pmap {
         pcfgmap := gpcfgmap.AsDict()
         pcfg := new(PortConf)
+        location := "port " + pname
 
         // Try to load port address
         var paddr net.Addr
@@ -100,6 +128,7 @@ func loadListenerPorts(lcfg *ListenerConf, pmap map[string]configElement) {
         case "tcp4", "tcp6", "udp4", "udp6":
             var phost, pport string
             if gphost, ok := pcfgmap["host"]; !ok {
+                errs.Add(location, "No 'host' entry present")
                 continue
             } else {
                 phost = gphost.AsEntry()[0]
@@ -113,6 +142,7 @@ func loadListenerPorts(lcfg *ListenerConf, pmap map[string]configElement) {
                 }
             }
             if gpport, ok := pcfgmap["port"]; !ok {
+                errs.Add(location, "No 'port' entry present")
                 continue
             } else {
                 pport = gpport.AsEntry()[0]
@@ -126,12 +156,14 @@ func loadListenerPorts(lcfg *ListenerConf, pmap map[string]configElement) {
         case "unix":
             var ppath string
             if gppath, ok := pcfgmap["path"]; !ok {
+                errs.Add(location, "No 'path' entry present")
                 continue
             } else {
                 ppath = gppath.AsEntry()[0]
             }
             paddr, _ = net.ResolveUnixAddr(pname, ppath)
         default:
+            errs.Add("", "Unknown port type '%s'", pname)
             continue
         }
 

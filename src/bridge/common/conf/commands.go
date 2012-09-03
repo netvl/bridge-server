@@ -1,8 +1,6 @@
 package conf
 
-import (
-    "code.google.com/p/gelo"
-)
+import "code.google.com/p/gelo"
 
 var confCommands = map[string]interface{}{
     "conf": conf,
@@ -21,6 +19,9 @@ func conf(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     // The value returned by inner command will be dict itself
     vm.Ns.Fork(nil)
     value := vm.API.InvokeCmdOrElse(body, nil)
+    if value == nil {
+        value = getOrMakeDict(vm)
+    }
     vm.Ns.Unfork()
     d.Set(name, value)
 

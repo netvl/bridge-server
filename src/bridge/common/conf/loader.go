@@ -31,5 +31,7 @@ func LoadConfig(file string) *Conf {
 
     rd, _ := result.(*gelo.Dict)
 
-    return buildConfig(rd)
+    cfg, errs := buildConfig(rd)
+    log.Println(errs)
+    return cfg
 }
