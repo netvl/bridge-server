@@ -8,80 +8,11 @@ package conf
 
 import (
     "code.google.com/p/gelo"
-    "fmt"
     "net"
 )
 
-type configElement interface {
-    AsDict() map[string]configElement
-    AsEntry() []string
-}
-
-type configDict map[string]configElement
-
-func (d configDict) AsDict() map[string]configElement {
-    return map[string]configElement(d)
-}
-
-func (d configDict) AsEntry() []string {
-    panic(fmt.Sprintf("Attempt to use dict as config entry: %v", d))
-    return nil
-}
-
-type configEntry []string
-
-func (e configEntry) AsDict() map[string]configElement {
-    panic(fmt.Sprintf("Attempt to use config entry as dict: %v", e))
-    return nil
-}
-
-func (e configEntry) AsEntry() []string {
-    return []string(e)
-}
-
-func convertDict(d *gelo.Dict) map[string]configElement {
-    rm := make(map[string]configElement)
-
-    m := d.Map()
-    for k, w := range m {
-        switch cw := w.(type) {
-        case *gelo.Dict:
-            cm := convertDict(cw)
-            rm[k] = configDict(cm)
-        case *gelo.List:
-            ce := convertList(cw)
-            rm[k] = configEntry(ce)
-        default:
-            panic(newConfigError("", "Illegal object %v encountered at key %v inside %v dict", w, k, d))
-        }
-    }
-
-    return rm
-}
-
-func convertList(l *gelo.List) []string {
-    rl := make([]string, 0, 1)
-    for ; l != nil; l = l.Next {
-        rl = append(rl, l.Value.Ser().String())
-    }
-    return rl
-}
-
-func convertDictSafe(d *gelo.Dict) (cm map[string]configElement, err error) {
-    defer func() {
-        v := recover()
-        if v != nil {
-            if e, ok := v.(*ConfigError); ok {
-                err = e
-            } else {
-                panic(v)
-            }
-        }
-    }()
-
-    return convertDict(d), nil
-}
-
+// buildConfig parses given Gelo dictionary into actual config structure *Conf. Returns a *Conf pointer
+// and a list of config errors.
 func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
     errs := makeConfigErrors()
 
@@ -91,9 +22,8 @@ func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
 
     cfgmap, err := convertDictSafe(d);
     if err != nil {
-        return nil, errs.AddError(err.(*ConfigError))
+        return nil, errs.addError(err.(*ConfigError))
     }
-
 
     if glmap, ok := cfgmap["listeners"]; ok {
         loadListeners(errs, cfg, glmap.AsDict())
@@ -102,20 +32,24 @@ func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
     return cfg, errs
 }
 
+// loadListeners fills given *Conf value with listeners configuration from the provided configDict,
+// adding errors, if any, to the errs list.
 func loadListeners(errs *ConfigErrors, cfg *Conf, lmap map[string]configElement) {
     for lname, gpmap := range lmap {
-        lcfg := &ListenerConf{Name: lname}
+        lcfg := &ListenerConf{Name: lname, Ports: make(map[PortType]*PortConf)}
         perrs := makeConfigErrors()
 
         loadListenerPorts(perrs, lcfg, gpmap.AsDict())
 
-        perrs.PrependLocation("listener " + lname)
-        errs.Merge(perrs)
+        perrs.prependLocation("listener " + lname)
+        errs.merge(perrs)
 
         cfg.Listeners[lname] = lcfg
     }
 }
 
+// loadListenerPorts fills given *ListenerConf value with listener ports configuration from
+// the provided configDict, adding errors, if any, to the errs list.
 func loadListenerPorts(errs *ConfigErrors, lcfg *ListenerConf, pmap map[string]configElement) {
     for pname, gpcfgmap := range pmap {
         pcfgmap := gpcfgmap.AsDict()
@@ -128,7 +62,7 @@ func loadListenerPorts(errs *ConfigErrors, lcfg *ListenerConf, pmap map[string]c
         case "tcp4", "tcp6", "udp4", "udp6":
             var phost, pport string
             if gphost, ok := pcfgmap["host"]; !ok {
-                errs.Add(location, "No 'host' entry present")
+                errs.add(location, "No 'host' entry present")
                 continue
             } else {
                 phost = gphost.AsEntry()[0]
@@ -141,11 +75,11 @@ func loadListenerPorts(errs *ConfigErrors, lcfg *ListenerConf, pmap map[string]c
                     }
                 }
             }
-            if gpport, ok := pcfgmap["port"]; !ok {
-                errs.Add(location, "No 'port' entry present")
-                continue
-            } else {
+            if gpport, ok := pcfgmap["port"]; ok {
                 pport = gpport.AsEntry()[0]
+            } else {
+                errs.add(location, "No 'port' entry present")
+                continue
             }
             switch pname {
             case "tcp4", "tcp6":
@@ -155,21 +89,75 @@ func loadListenerPorts(errs *ConfigErrors, lcfg *ListenerConf, pmap map[string]c
             }
         case "unix":
             var ppath string
-            if gppath, ok := pcfgmap["path"]; !ok {
-                errs.Add(location, "No 'path' entry present")
-                continue
-            } else {
+            if gppath, ok := pcfgmap["path"]; ok {
                 ppath = gppath.AsEntry()[0]
+            } else {
+                errs.add(location, "No 'path' entry present")
+                continue
             }
             paddr, _ = net.ResolveUnixAddr(pname, ppath)
         default:
-            errs.Add("", "Unknown port type '%s'", pname)
+            errs.add("", "Unknown port type '%s'", pname)
             continue
         }
 
         pcfg.Type = PortType(pname)
         pcfg.Addr = paddr
 
-        lcfg.Ports = append(lcfg.Ports, pcfg)
+        lcfg.Ports[pcfg.Type] = pcfg
+    }
+}
+
+// loadPlugins fills given *Conf value with plugins configuration from the provided configDict,
+// adding errors, if any, to the errs list.
+func loadPlugins(errs *ConfigErrors, cfg *Conf, pmap map[string]configElement) {
+    for pname, gpmap := range pmap {
+        pcfg := &PluginConf{
+            Name: pname,
+            Listeners: make([]string, 0, 2),
+            Mediators: make([]MediatorMap, 0, 2),
+            Options: make(map[string][]string),
+        }
+        perrs := makeConfigErrors()
+
+        loadPluginConfig(perrs, pcfg, gpmap.AsDict())
+
+        perrs.prependLocation("plugin " + pname)
+        errs.merge(perrs)
+
+        cfg.Plugins[pname] = pcfg
+    }
+}
+
+// loadPluginConfig fills given *PluginConf value with plugin configuration from provided configDict,
+// adding errors, if any, to the errs list.
+func loadPluginConfig(errs *ConfigErrors, pcfg *PluginConf, pcfgmap map[string]configElement) {
+    if gpplugin, ok := pcfgmap["plugin"]; ok {
+        pcfg.Plugin = PluginName(gpplugin.AsEntry()[0])
+        delete(pcfgmap, "plugin")
+    } else {
+        errs.add("", "Plugin name does not set")
+        return
+    }
+
+    if gplisteners, ok := pcfgmap["listeners"]; ok {
+        pcfg.Listeners = gplisteners.AsEntry()
+        delete(pcfgmap, "listeners")
+    }
+
+    if gpmediators, ok := pcfgmap["mediators"]; ok {
+        pmediators := gpmediators.AsEntry()
+        if len(pmediators) % 2 != 0 {
+            errs.add("", "Mediators config length is odd: %d", len(pmediators))
+            return
+        }
+        for i := range pmediators {
+            pcfg.Mediators = append(pcfg.Mediators, MediatorMap{pmediators[i], pmediators[i+1]})
+        }
+        delete(pcfgmap, "mediators")
+    }
+
+    for k, e := range pcfgmap {
+        pcfg.Options[k] = e.AsEntry()
     }
 }

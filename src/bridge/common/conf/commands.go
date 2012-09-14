@@ -34,7 +34,7 @@ func set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     }
     name := vm.API.SymbolOrElse(args.Value)
 
-    // Check that all arguments are symbols
+    // Check that all arguments are compatible values
     for tmp := args; tmp != nil; tmp = tmp.Next {
         _, oksym := tmp.Value.(gelo.Symbol)
         _, oknum := tmp.Value.(*gelo.Number)

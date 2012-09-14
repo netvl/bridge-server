@@ -4,34 +4,35 @@ import (
     "code.google.com/p/gelo"
     "log"
     "os"
+    "io"
 )
 
-func LoadConfig(file string) *Conf {
-    // gelo.SetTracer(extensions.Stderr)
-    // gelo.TraceOn(gelo.All_traces)
-
+func LoadConfigFromReader(src io.Reader) (*Conf, error) {
     port := gelo.NewChan()
     vm := gelo.NewVM(port)
     defer vm.Destroy()
 
     vm.RegisterBundle(confCommands)
 
-    f, err := os.Open(file)
+    result, err := vm.Run(src, nil)
     if err != nil {
-        log.Printf("Error opening config file: %v", err)
-        return nil
-    }
-    defer f.Close()
-
-    result, err := vm.Run(f, nil)
-    if err != nil {
-        log.Printf("VM error: %v", err)
-        return nil
+        return nil, err
     }
 
     rd, _ := result.(*gelo.Dict)
 
-    cfg, errs := buildConfig(rd)
-    log.Println(errs)
-    return cfg
+    return buildConfig(rd)
+}
+
+// Returns a configuration loaded from a file with given name.
+func LoadConfigFromFile(file string) (*Conf, error) {
+    f, err := os.Open(file)
+    if err != nil {
+        log.Printf("Error opening config file: %v", err)
+        return nil, err
+    }
+    defer f.Close()
+
+    return LoadConfigFromReader(f)
+
 }
