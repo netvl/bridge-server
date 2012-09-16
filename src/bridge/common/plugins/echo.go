@@ -7,9 +7,9 @@
 package plugins
 
 import (
-    "bridge/common/bridge"
+    . "bridge/common"
+    "bridge/common/conf"
     "bridge/common/msg"
-    "bridge/common/net/comm"
 )
 
 type EchoPlugin struct{}
@@ -18,8 +18,12 @@ func (_ *EchoPlugin) Name() string {
     return "echo"
 }
 
-func (_ *EchoPlugin) PluginTypes() map[bridge.PluginType]bool {
-    return bridge.AllPluginTypes
+func (_ *EchoPlugin) Config(cfg *conf.PluginConf) error {
+    return nil
+}
+
+func (_ *EchoPlugin) PluginTypes() map[PluginType]bool {
+    return AllPluginTypes
 }
 
 func (_ *EchoPlugin) SupportsMessage(name string) bool {
@@ -30,6 +34,10 @@ func (_ *EchoPlugin) DeserializeHook() msg.DeserializeHook {
     return msg.EmptyHook
 }
 
-func (_ *EchoPlugin) HandleMessage(msg *msg.Message, c *comm.Communicator) *msg.Message {
+func (_ *EchoPlugin) HandleMessage(msg *msg.Message, c Communicator) *msg.Message {
     return msg
+}
+
+func (_ *EchoPlugin) Term() {
+    return
 }

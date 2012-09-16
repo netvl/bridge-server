@@ -7,6 +7,7 @@
 package comm
 
 import (
+    "bridge/common"
     "bridge/common/msg"
     "net"
 )
@@ -14,6 +15,10 @@ import (
 type Node struct {
     name string
     addr net.IPAddr
+}
+
+func NewNode(name string, addr net.IPAddr) common.Node {
+    return &Node{name, addr}
 }
 
 func (n *Node) Name() string {
@@ -28,10 +33,14 @@ type Communicator struct {
     conn net.TCPConn
 }
 
-func NewCommunicator() *Communicator {
+func NewComm() common.Communicator {
     return new(Communicator)
 }
 
-func (comm *Communicator) Communicate(node Node, msg *msg.Message) (*msg.Message, error) {
+func (comm *Communicator) Send(node common.Node, msg *msg.Message) error {
+    return nil
+}
+
+func (comm *Communicator) Receive(node common.Node) (*msg.Message, error) {
     return nil, nil
 }

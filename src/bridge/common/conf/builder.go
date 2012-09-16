@@ -29,6 +29,8 @@ func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
         loadListeners(errs, cfg, glmap.AsDict())
     }
 
+    // TODO: add loading plugins and mediators
+
     return cfg, errs
 }
 
@@ -136,7 +138,7 @@ func loadPluginConfig(errs *ConfigErrors, pcfg *PluginConf, pcfgmap map[string]c
         pcfg.Plugin = PluginName(gpplugin.AsEntry()[0])
         delete(pcfgmap, "plugin")
     } else {
-        errs.add("", "Plugin name does not set")
+        errs.add("", "Plugin name is not set")
         return
     }
 
@@ -159,5 +161,48 @@ func loadPluginConfig(errs *ConfigErrors, pcfg *PluginConf, pcfgmap map[string]c
 
     for k, e := range pcfgmap {
         pcfg.Options[k] = e.AsEntry()
+    }
+}
+
+// loadPlugins fills given *Conf value with mediators configuration from the provided configDict,
+// adding errors, if any, to the errs list.
+func loadMediators(errs *ConfigErrors, cfg *Conf, mmap map[string]configElement) {
+    for mname, gmmap := range mmap {
+        mcfg := &MediatorConf{
+            Name: mname,
+            EndpointNames: make([]string, 0, 2),
+            Options: make(map[string][]string),
+        }
+        merrs := makeConfigErrors()
+
+        loadMediatorConfig(merrs, mcfg, gmmap.AsDict())
+
+        merrs.prependLocation("mediator " + mname)
+        errs.merge(merrs)
+
+        cfg.Mediators[mname] = mcfg
+    }
+}
+
+// loadPluginConfig fills given *PluginConf value with plugin configuration from provided configDict,
+// adding errors, if any, to the errs list.
+func loadMediatorConfig(errs *ConfigErrors, mcfg *MediatorConf, mcfgmap map[string]configElement) {
+    if gmmediator, ok := mcfgmap["mediator"]; ok {
+        mcfg.Mediator = MediatorName(gmmediator.AsEntry()[0])
+        delete(mcfgmap, "mediator")
+    } else {
+        errs.add("", "Mediator name is not set")
+        return
+    }
+
+    if gmendpoints, ok := mcfgmap["endpoints"]; ok {
+        mcfg.EndpointNames = gmendpoints.AsEntry()
+        delete(mcfgmap, "endpoints")
+    } else {
+        errs.add("", "Endpoint names are not set")
+    }
+
+    for k, e := range mcfgmap {
+        mcfg.Options[k] = e.AsEntry()
     }
 }

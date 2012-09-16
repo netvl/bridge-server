@@ -7,14 +7,13 @@
 package bridge
 
 import (
+    . "bridge/common"
     "bridge/common/msg"
-    "bridge/common/net/comm"
-    "bridge/common/net/listener"
     "log"
     "net"
 )
 
-func makePluginsHandler(plugins map[string]Plugin, c *comm.Communicator) listener.Handler {
+func makePluginsHandler(plugins map[string]Plugin, c Communicator) Handler {
     return func(conn net.Conn) {
         // Load message name and headers
         m, err := msg.DeserializeMessageName(conn)

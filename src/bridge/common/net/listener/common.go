@@ -10,6 +10,7 @@ import (
     "log"
     "net"
     "syscall"
+    . "bridge/common"
 )
 
 // StopChan represents a channel used to tell to some process that it should stop its work.
@@ -39,10 +40,6 @@ func (ch StopChan) Stop() {
     }
     close(ch)
 }
-
-// Handler is a function which is able to handle standard connection.
-// It is supposed that the handler itself does not close the connection.
-type Handler func(net.Conn)
 
 func listenOn(listener net.Listener, stopChan StopChan, handler Handler) {
     for {
