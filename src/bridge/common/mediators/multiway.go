@@ -55,7 +55,7 @@ func (m *multiway) Config(mconf *conf.MediatorConf) error {
     }
 
     if len(mconf.EndpointNames) == 0 {
-        return newError("Endpoint name is not specified")
+        return newError("Endpoint names are not specified")
     } else {
         for _, endpoint := range mconf.EndpointNames {
             m.endpoints[endpoint] = true

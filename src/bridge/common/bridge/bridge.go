@@ -60,11 +60,26 @@ func New(cfg *conf.Conf) Bridge {
         b.mediators[mname] = mediator
     }
 
-    return b
-}
+    for pname, pconf := range cfg.Plugins {
+        plugin, ok := b.plugins[pname]
+        if !ok {
+            continue
+        }
+        for _, mmap := range pconf.Mediators {
+            mediator, ok := b.mediators[mmap.Mediator]
+            if !ok {
+                continue
+            }
+            endpoint := mmap.Endpoint
+            if err := mediator.Subscribe(endpoint, plugin.Subscriber(endpoint)); err != nil {
+                log.Printf("Error subscribing plugin '%s' to endpoint '%s' at mediator '%s': %v",
+                    pname, endpoint, mediator.Name(), err)
+                continue
+            }
+        }
+    }
 
-func (b *bridge) AddPlugin(id string, lp Plugin) {
-    b.plugins[id] = lp
+    return b
 }
 
 func (b *bridge) Start() error {

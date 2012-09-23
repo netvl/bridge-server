@@ -34,8 +34,12 @@ func (_ *EchoPlugin) DeserializeHook() msg.DeserializeHook {
     return msg.EmptyHook
 }
 
-func (_ *EchoPlugin) HandleMessage(msg *msg.Message, c Communicator) *msg.Message {
+func (_ *EchoPlugin) HandleMessage(msg *msg.Message, api BridgeAPI) *msg.Message {
     return msg
+}
+
+func (_ *EchoPlugin) Subscriber() Subscriber {
+    return EmptySubscriber
 }
 
 func (_ *EchoPlugin) Term() {

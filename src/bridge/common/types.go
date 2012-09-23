@@ -19,6 +19,11 @@ type Bridge interface {
     Stop()
 }
 
+type BridgeAPI interface {
+    Mediator(name string) Mediator
+    Comm() Communicator
+}
+
 // ================== LISTENERS ==================
 
 // Handler is a function which is able to handle standard connection.
@@ -65,13 +70,16 @@ type Plugin interface {
     PluginTypes() map[PluginType]bool
     SupportsMessage(name string) bool
     DeserializeHook() msg.DeserializeHook
-    HandleMessage(msg *msg.Message, c Communicator) *msg.Message
+    HandleMessage(msg *msg.Message, api BridgeAPI) *msg.Message
+    Subscriber(endpoint string) Subscriber
     Term()
 }
 
 // ================== MEDIATORS ==================
 
 type Subscriber func (msg interface{})
+
+var EmptySubscriber = func (_ interface{}) {}
 
 type Mediator interface {
     Name() string
