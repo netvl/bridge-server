@@ -7,10 +7,10 @@
 package bridge_test
 
 import (
-    "bridge/common/bridge"
-    "bridge/common/conf"
-    "bridge/common/msg"
-    "bridge/common/plugins"
+    "github.com/dpx-infinity/bridge-server/common/bridge"
+    "github.com/dpx-infinity/bridge-server/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/msg"
+    "github.com/dpx-infinity/bridge-server/common/plugins"
     . "launchpad.net/gocheck"
     "net"
     "testing"

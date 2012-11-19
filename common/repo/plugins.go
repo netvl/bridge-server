@@ -7,8 +7,8 @@
 package repo
 
 import (
-    . "bridge/common"
-    "bridge/common/plugins"
+    . "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/plugins"
 )
 
 type PluginMaker func () Plugin

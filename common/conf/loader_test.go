@@ -1,7 +1,7 @@
 package conf_test
 
 import (
-    "bridge/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/conf"
     "testing"
     "log"
     "os"

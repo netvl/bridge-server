@@ -7,8 +7,8 @@
 package mediators
 
 import (
-    . "bridge/common"
-    "bridge/common/conf"
+    . "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/conf"
     "strconv"
 )
 

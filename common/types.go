@@ -7,9 +7,9 @@
 package common
 
 import (
-    "bridge/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/conf"
     "net"
-    "bridge/common/msg"
+    "github.com/dpx-infinity/bridge-server/common/msg"
 )
 
 // ================== BRIDGE ==================

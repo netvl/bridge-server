@@ -10,7 +10,7 @@ import (
     "log"
     "net"
     "syscall"
-    . "bridge/common"
+    . "github.com/dpx-infinity/bridge-server/common"
 )
 
 // StopChan represents a channel used to tell to some process that it should stop its work.

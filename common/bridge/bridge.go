@@ -7,11 +7,11 @@
 package bridge
 
 import (
-    . "bridge/common"
-    "bridge/common/conf"
-    "bridge/common/net/listener"
-    "bridge/common/net/comm"
-    "bridge/common/repo"
+    . "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/net/listener"
+    "github.com/dpx-infinity/bridge-server/common/net/comm"
+    "github.com/dpx-infinity/bridge-server/common/repo"
     "log"
 )
 

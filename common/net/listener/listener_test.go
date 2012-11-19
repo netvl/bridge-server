@@ -7,8 +7,8 @@
 package listener_test
 
 import (
-    "bridge/common/conf"
-    "bridge/common/net/listener"
+    "github.com/dpx-infinity/bridge-server/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/net/listener"
     "bufio"
     . "launchpad.net/gocheck"
     "net"

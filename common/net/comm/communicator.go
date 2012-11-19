@@ -7,8 +7,8 @@
 package comm
 
 import (
-    "bridge/common"
-    "bridge/common/msg"
+    "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/msg"
     "net"
 )
 

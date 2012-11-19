@@ -7,9 +7,9 @@
 package plugins
 
 import (
-    . "bridge/common"
-    "bridge/common/conf"
-    "bridge/common/msg"
+    . "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/conf"
+    "github.com/dpx-infinity/bridge-server/common/msg"
     "log"
 )
 

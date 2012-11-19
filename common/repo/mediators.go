@@ -7,8 +7,8 @@
 package repo
 
 import (
-    . "bridge/common"
-    "bridge/common/mediators"
+    . "github.com/dpx-infinity/bridge-server/common"
+    "github.com/dpx-infinity/bridge-server/common/mediators"
 )
 
 type MediatorMaker func () Mediator
