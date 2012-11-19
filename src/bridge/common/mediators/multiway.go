@@ -36,7 +36,7 @@ func (m *multiway) Name() string {
 
 func (m *multiway) Config(mconf *conf.MediatorConf) error {
     if string(mconf.Mediator) != m.Name() {
-        return newError("Invalid mediator name: %s", mconf.Mediator)
+        return newErrorf("Invalid mediator name: %s", mconf.Mediator)
     }
 
     var capacity string
@@ -49,13 +49,13 @@ func (m *multiway) Config(mconf *conf.MediatorConf) error {
     if capacity == "infinite" {
         m.container = make(chan *envelope)
     } else if n, err := strconv.Atoi(capacity); err != nil {
-        return newError("Capacity value '%s': %s", capacity, err)
+        return newErrorf("Capacity value '%s': %s", capacity, err)
     } else {
         m.container = make(chan *envelope, n)
     }
 
     if len(mconf.EndpointNames) == 0 {
-        return newError("Endpoint names are not specified")
+        return newErrorf("Endpoint names are not specified")
     } else {
         for _, endpoint := range mconf.EndpointNames {
             m.endpoints[endpoint] = true
@@ -69,7 +69,7 @@ func (m *multiway) Config(mconf *conf.MediatorConf) error {
 
 func (m *multiway) Submit(endpoint string, msg interface{}) error {
     if !m.endpoints[endpoint] {
-        return newError("Invalid endpoint %s requested", endpoint)
+        return newErrorf("Invalid endpoint %s requested", endpoint)
     }
     m.container <- &envelope{endpoint, msg}
 
@@ -78,7 +78,7 @@ func (m *multiway) Submit(endpoint string, msg interface{}) error {
 
 func (m *multiway) Subscribe(endpoint string, s Subscriber) error {
     if !m.endpoints[endpoint] {
-        return newError("Invalid endpoint %s requested", endpoint)
+        return newErrorf("Invalid endpoint %s requested", endpoint)
     }
 
     if subscribers, ok := m.subscribers[endpoint]; ok {

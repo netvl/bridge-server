@@ -49,7 +49,7 @@ func makePluginsHandler(plugins map[string]Plugin, c Communicator) Handler {
                     log.Printf("Bridge local plugin handler message body parts deserialization error: %v", err)
                     break
                 }
-                rm := p.HandleMessage(m, c)
+                rm := p.HandleMessage(m, nil)
                 if err := msg.Serialize(rm, conn); err != nil {
                     log.Printf("Bridge local plugin handler message serialization error: %v", err)
                     break

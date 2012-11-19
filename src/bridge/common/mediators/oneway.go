@@ -28,11 +28,11 @@ func (o *oneway) Name() string {
 
 func (o *oneway) Config(mconf *conf.MediatorConf) error {
     if string(mconf.Mediator) != o.Name() {
-        return newError("Invalid mediator name: %s", mconf.Mediator)
+        return newErrorf("Invalid mediator name: %s", mconf.Mediator)
     }
 
     if len(mconf.EndpointNames) == 0 {
-        return newError("Endpoint name is not specified")
+        return newErrorf("Endpoint name is not specified")
     } else {
         o.endpoint = mconf.EndpointNames[0]
     }
@@ -42,7 +42,7 @@ func (o *oneway) Config(mconf *conf.MediatorConf) error {
 
 func (o *oneway) Submit(endpoint string, msg interface{}) error {
     if endpoint != o.endpoint {
-        return newError("Invalid endpoint %s requested", endpoint)
+        return newErrorf("Invalid endpoint %s requested", endpoint)
     }
 
     for _, s := range o.subscribers {
@@ -54,7 +54,7 @@ func (o *oneway) Submit(endpoint string, msg interface{}) error {
 
 func (o *oneway) Subscribe(endpoint string, s Subscriber) error {
     if endpoint != o.endpoint {
-        return newError("Invalid endpoint %s requested", endpoint)
+        return newErrorf("Invalid endpoint %s requested", endpoint)
     }
 
     if o.subscribers == nil {
@@ -64,4 +64,8 @@ func (o *oneway) Subscribe(endpoint string, s Subscriber) error {
     o.subscribers = append(o.subscribers, s)
 
     return nil
+}
+
+func (o *oneway) Term() {
+    // Nothing
 }

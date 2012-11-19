@@ -10,6 +10,7 @@ import (
     . "bridge/common"
     "bridge/common/conf"
     "bridge/common/msg"
+    "log"
 )
 
 type EchoPlugin struct{}
@@ -35,10 +36,11 @@ func (_ *EchoPlugin) DeserializeHook() msg.DeserializeHook {
 }
 
 func (_ *EchoPlugin) HandleMessage(msg *msg.Message, api BridgeAPI) *msg.Message {
+    log.Printf("Received a message: %v", msg)
     return msg
 }
 
-func (_ *EchoPlugin) Subscriber() Subscriber {
+func (_ *EchoPlugin) Subscriber(endpoint string) Subscriber {
     return EmptySubscriber
 }
 

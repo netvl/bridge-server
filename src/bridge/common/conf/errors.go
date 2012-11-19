@@ -41,6 +41,11 @@ func makeConfigErrors() *ConfigErrors {
     return &ConfigErrors{ce}
 }
 
+// Returns true if there are no errors are present in the container, false otherwise.
+func (errs *ConfigErrors) noErrors() bool {
+    return len(errs.errors) == 0
+}
+
 // Add adds an error with given location and formatted message to the list of errors,
 // returning this list.
 func (errs *ConfigErrors) add(location string, msg string, args ...interface{}) *ConfigErrors {

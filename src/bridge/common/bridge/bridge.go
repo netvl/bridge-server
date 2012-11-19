@@ -86,7 +86,9 @@ func (b *bridge) Start() error {
     h := makePluginsHandler(b.plugins, b.communicator)
     for _, l := range b.listeners {
         l.SetHandler(h)
-        l.Start()
+        if err := l.Start(); err != nil {
+            return err
+        }
     }
 
     return nil

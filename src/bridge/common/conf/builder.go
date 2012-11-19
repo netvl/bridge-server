@@ -13,7 +13,7 @@ import (
 
 // buildConfig parses given Gelo dictionary into actual config structure *Conf. Returns a *Conf pointer
 // and a list of config errors.
-func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
+func buildConfig(d *gelo.Dict) (*Conf, error) {
     errs := makeConfigErrors()
 
     cfg := &Conf{
@@ -31,6 +31,9 @@ func buildConfig(d *gelo.Dict) (*Conf, *ConfigErrors) {
 
     // TODO: add loading plugins and mediators
 
+    if errs.noErrors() {
+        return cfg, nil
+    }
     return cfg, errs
 }
 
