@@ -9,24 +9,22 @@ package mediators
 import (
     . "github.com/dpx-infinity/bridge-server/common"
     "github.com/dpx-infinity/bridge-server/common/conf"
-    "strconv"
+    "sync"
+    "runtime"
 )
 
-type envelope struct {
-    endpoint string
-    datum interface{}
-}
-
 type multiway struct {
-    container chan *envelope
     endpoints map[string]bool
-    subscribers map[string][]Subscriber
+    ports map[string][]Port
+    terminated bool
+    lock sync.Mutex
 }
 
 func NewMultiway() Mediator {
     return &multiway{
         endpoints: make(map[string]bool),
-        subscribers: make(map[string][]Subscriber),
+        ports: make(map[string][]Port),
+        terminated: false,
     }
 }
 
@@ -37,21 +35,6 @@ func (m *multiway) Name() string {
 func (m *multiway) Config(mconf *conf.MediatorConf) error {
     if string(mconf.Mediator) != m.Name() {
         return newErrorf("Invalid mediator name: %s", mconf.Mediator)
-    }
-
-    var capacity string
-    if capacitySlice, ok := mconf.Options["capacity"]; ok && len(capacitySlice) > 0 {
-        capacity = capacitySlice[0]
-    } else {
-        capacity = "infinite"
-    }
-
-    if capacity == "infinite" {
-        m.container = make(chan *envelope)
-    } else if n, err := strconv.Atoi(capacity); err != nil {
-        return newErrorf("Capacity value '%s': %s", capacity, err)
-    } else {
-        m.container = make(chan *envelope, n)
     }
 
     if len(mconf.EndpointNames) == 0 {
@@ -67,49 +50,82 @@ func (m *multiway) Config(mconf *conf.MediatorConf) error {
     return nil
 }
 
-func (m *multiway) Submit(endpoint string, msg interface{}) error {
-    if !m.endpoints[endpoint] {
-        return newErrorf("Invalid endpoint %s requested", endpoint)
-    }
-    m.container <- &envelope{endpoint, msg}
-
-    return nil
+func (m *multiway) HasEndpoint(endpoint string) bool {
+    return m.endpoints[endpoint]
 }
 
-func (m *multiway) Subscribe(endpoint string, s Subscriber) error {
-    if !m.endpoints[endpoint] {
-        return newErrorf("Invalid endpoint %s requested", endpoint)
+func (m *multiway) Connect(endpoint string, port Port) error {
+    // Take a hold on the mutex
+    m.lock.Lock()
+    defer m.lock.Unlock()
+
+    if !m.HasEndpoint(endpoint) {
+        return newErrorf("Invalid endpoint name: %s", endpoint)
     }
 
-    if subscribers, ok := m.subscribers[endpoint]; ok {
-        m.subscribers[endpoint] = append(subscribers, s)
+    if ports, ok := m.ports[endpoint]; ok {
+        m.ports[endpoint] = append(ports, port)
     } else {
-        subscribers = make([]Subscriber, 1, 4)
-        subscribers[0] = s
-        m.subscribers[endpoint] = subscribers
+        ports = make([]Port, 1, 4)
+        ports[0] = port
+        m.ports[endpoint] = ports
     }
 
     return nil
 }
 
 func (m *multiway) Term() {
-    close(m.container)
+    m.terminated = true
 }
 
 func (m *multiway) notifier() {
+    // Prepare a slice where we will hold ports
+    ports := make([]Port, 0, len(m.ports))
+
+    // Main loop
     for {
-        msg, ok := <-m.container
-        if !ok {
-            break
+        // First, check whether we have been interrupted
+        if m.terminated {
+            return
         }
 
-        for ep, ss := range m.subscribers {
-            if ep == msg.endpoint {
-                continue
-            }
-            for _, s := range ss {
-                s(msg.datum)
+        // We need exclusive access to ports map, so we can construct consistent slice of ports
+
+        // Lock the mutex
+        m.lock.Lock()
+
+        // Clear the ports slice
+        ports = ports[:0]
+
+        // Fill the ports slice
+        // TODO: add 'changed' flag and refill the slice only if it is set
+        for _, endpointPorts := range m.ports {
+            for _, port := range endpointPorts {
+                ports = append(ports, port)
             }
         }
+
+        // Unlock the mutex back
+        m.lock.Unlock()
+
+        // Walk through all ports and fan out all incoming messages to other ports
+        for _, port := range ports {
+            select {
+            case msg, ok := <-port.Second().Source():
+                // If the receive was successful, fan the received message out to all other ports
+                if ok {
+                    for _, other := range ports {
+                        if other != port {
+                            other.Second().Sink() <- msg
+                        }
+                    }
+                }
+            default:
+                // Pass to the next port
+            }
+        }
+
+        // Give time to other routines
+        runtime.Gosched()
     }
 }

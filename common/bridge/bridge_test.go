@@ -31,12 +31,21 @@ func (_ BridgeSuite) TestLocalHandling(c *C) {
         Listeners: map[string]*conf.ListenerConf{
             "local": &conf.ListenerConf{
                 Name: "local",
-                Ports: []*conf.PortConf{
-                    &conf.PortConf{
+                Ports: map[conf.PortType]*conf.PortConf{
+                    conf.PortTypeTCP4: &conf.PortConf{
                         Type: conf.PortTypeTCP4,
                         Addr: addr,
                     },
                 },
+            },
+        },
+        Plugins: map[string]*conf.PluginConf{
+            "echo-plugin": &conf.PluginConf{
+                Name: "echo-plugin",
+                Plugin: "echo",
+                Listeners: []string{"local"},
+                Mediators: []string{},
+                Options: map[string][]string{"prefix": []string{"Echo"}},
             },
         },
     }
@@ -67,30 +76,16 @@ func testEchoPlugin(cc net.Conn, c *C) {
     m := msg.CreateWithName("test-name")
     m.SetHeader("hdr1", "val1")
     m.SetHeader("hdr2", "val2")
-    m.SetBodyPart("bp1", msg.BodyPartFromSlice(bps))
+    m.SetBodyPart("bp1", bps)
 
     err := msg.Serialize(m, cc)
     printCause(c, err)
     c.Assert(err, IsNil)
 
-    rm, err := msg.DeserializeMessageName(cc)
-    printCause(c, err)
+    m2, err := msg.Deserialize(cc)
     c.Assert(err, IsNil)
-    c.Assert(rm.GetName(), Equals, m.GetName())
-
-    err = msg.DeserializeMessageHeaders(cc, rm)
-    printCause(c, err)
-    c.Assert(err, IsNil)
-    c.Assert(rm.GetHeader("hdr1"), Equals, m.GetHeader("hdr1"))
-    c.Assert(rm.GetHeader("hdr2"), Equals, m.GetHeader("hdr2"))
-
-    err = msg.DeserializeMessageBodyParts(cc, rm, msg.EmptyHook)
-    c.Assert(err, IsNil)
-    printCause(c, err)
-
-    buf := make([]byte, rm.GetBodyPart("bp1").Size())
-    n, err := rm.GetBodyPart("bp1").Read(buf)
-    c.Assert(err, IsNil)
-    c.Assert(n, Equals, len(bps))
-    c.Assert(buf, DeepEquals, bps)
+    c.Assert(m2.GetName(), Equals, m.GetName())
+    c.Assert(m2.Header("hdr1"), Equals, m.Header("hdr1"))
+    c.Assert(m2.Header("hdr2"), Equals, m.Header("hdr2"))
+    c.Assert(m2.BodyPart("bp1"), DeepEquals, bps)
 }

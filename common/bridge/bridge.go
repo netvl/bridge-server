@@ -22,6 +22,10 @@ type bridge struct {
     communicator Communicator
 }
 
+func (b *bridge) Comm() Communicator {
+    return b.communicator
+}
+
 func New(cfg *conf.Conf) Bridge {
     b := &bridge{
         listeners:    make(map[string]Listener),
@@ -30,10 +34,12 @@ func New(cfg *conf.Conf) Bridge {
         communicator: comm.NewComm(),
     }
 
+    // Construct listeners
     for lname, lconf := range cfg.Listeners {
         b.listeners[lname] = listener.NewListener(lconf)
     }
 
+    // Construct and configure plugins
     for pname, pconf := range cfg.Plugins {
         plugin := repo.GetPlugin(string(pconf.Plugin))
         if plugin == nil {
@@ -46,7 +52,8 @@ func New(cfg *conf.Conf) Bridge {
         }
         b.plugins[pname] = plugin
     }
-    
+
+    // Construct and configure mediators
     for mname, mconf := range cfg.Mediators {
         mediator := repo.GetMediator(string(mconf.Mediator))
         if mediator == nil {
@@ -60,6 +67,7 @@ func New(cfg *conf.Conf) Bridge {
         b.mediators[mname] = mediator
     }
 
+    // Link plugins and mediators
     for pname, pconf := range cfg.Plugins {
         plugin, ok := b.plugins[pname]
         if !ok {
@@ -83,10 +91,9 @@ func New(cfg *conf.Conf) Bridge {
 }
 
 func (b *bridge) Start() error {
-    h := makePluginsHandler(b.plugins, b.communicator)
-    for _, l := range b.listeners {
-        l.SetHandler(h)
-        if err := l.Start(); err != nil {
+    for name, lr := range b.listeners {
+        lr.SetHandler(b.makePluginsHandler(name))
+        if err := lr.Start(); err != nil {
             return err
         }
     }

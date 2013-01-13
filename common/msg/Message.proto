@@ -1,0 +1,15 @@
+message Message {
+    required string name = 1;
+    repeated Header headers = 2;
+    repeated BodyPart bodyParts = 3;
+}
+
+message Header {
+    required string name = 1;
+    required string value = 2;
+}
+
+message BodyPart {
+    required string name = 1;
+    required bytes data = 2;
+}

@@ -20,7 +20,6 @@ type Bridge interface {
 }
 
 type BridgeAPI interface {
-    Mediator(name string) Mediator
     Comm() Communicator
 }
 
@@ -44,48 +43,43 @@ type Node interface {
 }
 
 type Communicator interface {
-    Send(node Node, msg *msg.Message) error
-    Receive(node Node) (*msg.Message, error)
+    Send(node Node, msg *msg.Message)
+}
+
+// ================== PORTS ==================
+
+type Chan chan interface{}
+type SourceChan <-chan interface{}
+type SinkChan chan<- interface{}
+
+type ChanPair interface {
+    Source() SourceChan
+    Sink() SinkChan
+}
+
+type Port interface {
+    First() ChanPair
+    Second() ChanPair
 }
 
 // ================== PLUGINS ==================
 
-type PluginType int
-
-const (
-    PluginTypeTCP PluginType = iota
-    PluginTypeUDP
-    PluginTypeUnix
-)
-
-var AllPluginTypes = map[PluginType]bool{
-    PluginTypeTCP:  true,
-    PluginTypeUDP:  true,
-    PluginTypeUnix: true,
-}
-
 type Plugin interface {
     Name() string
     Config(conf *conf.PluginConf) error
-    PluginTypes() map[PluginType]bool
+    Port(name string) Port
     SupportsMessage(name string) bool
-    DeserializeHook() msg.DeserializeHook
     HandleMessage(msg *msg.Message, api BridgeAPI) *msg.Message
-    Subscriber(endpoint string) Subscriber
     Term()
 }
 
 // ================== MEDIATORS ==================
 
-type Subscriber func (msg interface{})
-
-var EmptySubscriber = func (_ interface{}) {}
-
 type Mediator interface {
     Name() string
-    Config(mcfg *conf.MediatorConf) error
-    Submit(endpoint string, msg interface{}) error
-    Subscribe(endpoint string, s Subscriber) error
+    Config(conf *conf.MediatorConf) error
+    HasEndpoint(endpoint string) bool
+    Connect(endpoint string, port Port) error
     Term()
 }
 

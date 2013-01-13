@@ -8,22 +8,16 @@ package msg
 
 import (
     "bytes"
-    "encoding/hex"
     . "launchpad.net/gocheck"
     "testing"
-)
-
-const (
-    EXAMPLE1_HEXDUMP = "4d5347530000000c746573745f6d657373616765020468647231060076616c756531046864723206" +
-        "0076616c7565320203627031040000000102030403627032160000005465737420626f6479207061727420636f6e74656e74"
 )
 
 func createMsg_Example1() *Message {
     msg := CreateWithName("test_message")
     msg.SetHeader("hdr1", "value1")
     msg.SetHeader("hdr2", "value2")
-    msg.SetBodyPart("bp1", BodyPartFromSlice([]byte{1, 2, 3, 4}))
-    msg.SetBodyPart("bp2", BodyPartFromSlice([]byte("Test body part content")))
+    msg.SetBodyPart("bp1", []byte{1, 2, 3, 4})
+    msg.SetBodyPart("bp2", []byte("Test body part content"))
     return msg
 }
 
@@ -35,53 +29,24 @@ type MsgSuite struct{}
 
 var _ = Suite(&MsgSuite{})
 
-func (s *MsgSuite) TestMessageSerialization(t *C) {
+func (s *MsgSuite) TestMessageSerializationDeserialization(t *C) {
     msg := createMsg_Example1()
 
     var buf bytes.Buffer
     if err := Serialize(msg, &buf); err != nil {
-        t.Fatal("Serialization error: " + err.Error())
+        t.Fatalf("Serialization error: %s", err.Error())
     }
 
-    hexdump := hex.EncodeToString(buf.Bytes())
-    if hexdump != EXAMPLE1_HEXDUMP {
-        t.Fatal("Serialized messages do not match!")
+    msg2, err := Deserialize(&buf)
+    if err != nil {
+        t.Fatalf("Deserialization error: %s", err.Error())
     }
-}
 
-func readReader(r *bytes.Reader) []byte {
-    buf := make([]byte, r.Len())
-    r.Read(buf)
-    return buf
-}
-
-func (s *MsgSuite) TestMessageDeserialization(t *C) {
-    data, _ := hex.DecodeString(EXAMPLE1_HEXDUMP)
-    src := bytes.NewReader(data)
-
-    msg, err := DeserializeMessageName(src)
-    t.Assert(err, IsNil)
-
-    err = DeserializeMessageHeaders(src, msg)
-    t.Assert(err, IsNil)
-
-    err = DeserializeMessageBodyParts(src, msg, EmptyHook)
-    t.Assert(err, IsNil)
-
-    tpl := createMsg_Example1()
-
-    t.Assert(msg.GetName(), Equals, tpl.GetName())
-    t.Assert(msg.headers, DeepEquals, tpl.headers)
-
-    t.Assert(len(msg.bodyParts), Equals, len(tpl.bodyParts))
-
-    b1, ok := msg.bodyParts["bp1"].reader.(*bytes.Reader)
-    t.Assert(ok, Equals, true)
-    b2, _ := tpl.bodyParts["bp1"].reader.(*bytes.Reader)
-    t.Assert(readReader(b1), DeepEquals, readReader(b2))
-
-    b1, ok = msg.bodyParts["bp2"].reader.(*bytes.Reader)
-    t.Assert(ok, Equals, true)
-    b2, _ = tpl.bodyParts["bp2"].reader.(*bytes.Reader)
-    t.Assert(readReader(b1), DeepEquals, readReader(b2))
+    t.Assert(msg2.GetName(), Equals, msg.GetName())
+    t.Assert(len(msg2.Headers), Equals, len(msg.Headers))
+    t.Assert(msg2.Header("hdr1"), Equals, msg.Header("hdr1"))
+    t.Assert(msg2.Header("hdr2"), Equals, msg.Header("hdr2"))
+    t.Assert(len(msg2.BodyParts), Equals, len(msg.BodyParts))
+    t.Assert(msg2.BodyPart("bp1"), DeepEquals, msg.BodyPart("bp1"))
+    t.Assert(msg2.BodyPart("bp2"), DeepEquals, msg.BodyPart("bp2"))
 }

@@ -23,24 +23,16 @@ func (_ *EchoPlugin) Config(cfg *conf.PluginConf) error {
     return nil
 }
 
-func (_ *EchoPlugin) PluginTypes() map[PluginType]bool {
-    return AllPluginTypes
-}
-
-func (_ *EchoPlugin) SupportsMessage(name string) bool {
+func (_ *EchoPlugin) SupportsMessage(_ string) bool {
     return true
 }
 
-func (_ *EchoPlugin) DeserializeHook() msg.DeserializeHook {
-    return msg.EmptyHook
-}
-
-func (_ *EchoPlugin) HandleMessage(msg *msg.Message, api BridgeAPI) *msg.Message {
+func (_ *EchoPlugin) HandleMessage(msg *msg.Message, _ BridgeAPI) *msg.Message {
     log.Printf("Received a message: %v", msg)
     return msg
 }
 
-func (_ *EchoPlugin) Subscriber(endpoint string) Subscriber {
+func (_ *EchoPlugin) Subscriber(_ string) Subscriber {
     return EmptySubscriber
 }
 

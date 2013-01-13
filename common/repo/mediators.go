@@ -14,8 +14,8 @@ import (
 type MediatorMaker func () Mediator
 
 var mediatorsRepo = map[string]MediatorMaker {
-    "multiway": func() Mediator{ return mediators.NewMultiway() },
-    "oneway": func() Mediator{ return mediators.NewOneway() },
+    "multiway": func() Mediator { return mediators.NewMultiway() },
+    "oneway": func() Mediator { return mediators.NewOneway() },
 }
 
 func GetMediator(name string) Mediator {
