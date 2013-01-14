@@ -28,6 +28,38 @@ const (
     PortTypeUnix PortType = "unix"
 )
 
+var (
+    PortTypes =
+    map[PortType]bool{
+        PortTypeTCP4: true,
+        PortTypeUDP4: true,
+        PortTypeTCP6: true,
+        PortTypeUDP6: true,
+        PortTypeUnix: true,
+    }
+    TCPPortTypes =
+    map[PortType]bool{
+        PortTypeTCP4: true,
+        PortTypeTCP6: true,
+    }
+    UDPPortTypes =
+    map[PortType]bool{
+        PortTypeUDP4: true,
+        PortTypeUDP6: true,
+    }
+    UnixPortTypes =
+    map[PortType]bool{
+        PortTypeUnix: true,
+    }
+)
+
+func ValidPortType(s string) (PortType, bool) {
+    if pt := PortType(s); PortTypes[pt] {
+        return pt, true
+    }
+    return PortType(""), false
+}
+
 type PortConf struct {
     Type PortType
     Addr net.Addr
@@ -58,8 +90,20 @@ type PluginConf struct {
     Options map[string][]string
 }
 
+type CommonConf struct {
+    Discoverable []uint16
+    PresentServices bool
+    StartDebugPlugin []string
+}
+
+type Link struct {
+
+}
+
 type Conf struct {
+    Common *CommonConf
     Listeners map[string]*ListenerConf
     Plugins map[string]*PluginConf
     Mediators map[string]*MediatorConf
+    Links []*Link
 }
