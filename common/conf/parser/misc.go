@@ -29,9 +29,12 @@ func booleanOption(vm *gelo.VM, args *gelo.List, ac uint, dst *bool, command str
 
 func (p *ConfigParser) set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     if ac == 0 {
-        gelo.ArgumentError(vm, "set", "name [args*]", args)
+        gelo.ArgumentError(vm, "set", "<name> [args*]", args)
     }
     name := vm.API.SymbolOrElse(args.Value)
+
+    // Check that we're in correct section
+    checkInSection(vm, "set", "port", "plugin")
 
     // Check that all arguments are compatible values
     for tmp := args; tmp != nil; tmp = tmp.Next {
@@ -39,7 +42,7 @@ func (p *ConfigParser) set(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
         _, oknum := tmp.Value.(*gelo.Number)
         _, okbool := tmp.Value.(gelo.Bool)
         if !(oksym || oknum || okbool) {
-            gelo.RuntimeError(vm, "Arguments should be symbols or numbers or booleans")
+            runtimeError(vm, "Arguments of set should be symbols or numbers or booleans")
         }
     }
 

@@ -14,7 +14,7 @@ import (
 type ConfigParser struct {
     conf *conf.Conf
     port gelo.Port
-    vm *gelo.VM
+    vm   *gelo.VM
 }
 
 func (p *ConfigParser) Init() {
@@ -31,27 +31,22 @@ func (p *ConfigParser) Term() {
 
 func (p *ConfigParser) commands() map[string]interface{} {
     return map[string]interface{}{
-        "common": p.common,
-        "discoverable": p.discoverable,
-        "present-services": p.presentServices,
+        "common":             p.common,
+        "discoverable":       p.discoverable,
+        "present-services":   p.presentServices,
         "start-debug-plugin": p.startDebugPlugin,
 
         "listeners": p.listeners,
-        "listener": p.listener,
-        "port": p.port,
+        "listener":  p.listener,
+        "port":      p.port,
 
         "plugins": p.plugins,
-        "plugin": p.plugin,
+        "plugin":  p.plugin,
+        "type":    p.pluginType,
 
-        "mediators": p.mediators,
-        "mediator": p.mediator,
-        "endpoints": p.endpoints,
-
-        "links": p.links,
+        "links":   p.links,
         "connect": p.connect,
 
-        "type": p.typeCmd,
-        "set":  p.set,
+        "set": p.set,
     }
 }
-

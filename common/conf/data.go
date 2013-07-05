@@ -14,11 +14,8 @@ import (
 // as standard net functions accept.
 type PortType string
 
-// MediatorName is an alias for textual name of mediator.
-type MediatorName string
-
-// PluginName is an alias for textual name of plugin.
-type PluginName string
+// PluginType is an alias for textual name of plugin.
+type PluginType string
 
 const (
     PortTypeTCP4 PortType = "tcp4"
@@ -29,26 +26,22 @@ const (
 )
 
 var (
-    PortTypes =
-    map[PortType]bool{
+    PortTypes = map[PortType]bool{
         PortTypeTCP4: true,
         PortTypeUDP4: true,
         PortTypeTCP6: true,
         PortTypeUDP6: true,
         PortTypeUnix: true,
     }
-    TCPPortTypes =
-    map[PortType]bool{
+    TCPPortTypes = map[PortType]bool{
         PortTypeTCP4: true,
         PortTypeTCP6: true,
     }
-    UDPPortTypes =
-    map[PortType]bool{
+    UDPPortTypes = map[PortType]bool{
         PortTypeUDP4: true,
         PortTypeUDP6: true,
     }
-    UnixPortTypes =
-    map[PortType]bool{
+    UnixPortTypes = map[PortType]bool{
         PortTypeUnix: true,
     }
 )
@@ -70,40 +63,31 @@ type ListenerConf struct {
     Ports map[PortType]*PortConf
 }
 
-type MediatorConf struct {
-    Name string
-    Mediator MediatorName
-    EndpointNames []string
-    Options map[string][]string
-}
-
-type MediatorMap struct {
-    Mediator string
-    Endpoint string
-}
-
 type PluginConf struct {
-    Name string
-    Plugin PluginName
-    Listeners []string
-    Mediators []MediatorMap
+    Name    string
+    Plugin  PluginType
     Options map[string][]string
 }
 
 type CommonConf struct {
-    Discoverable []uint16
-    PresentServices bool
+    Discoverable     []uint16
+    PresentServices  bool
     StartDebugPlugin []string
 }
 
-type Link struct {
+type PeerConf struct {
+    Name   string
+    Socket string
+}
 
+type LinkConf struct {
+    EndA *PeerConf
+    EndZ *PeerConf
 }
 
 type Conf struct {
-    Common *CommonConf
+    Common    *CommonConf
     Listeners map[string]*ListenerConf
-    Plugins map[string]*PluginConf
-    Mediators map[string]*MediatorConf
-    Links []*Link
+    Plugins   map[string]*PluginConf
+    Links     []*LinkConf
 }

@@ -32,10 +32,6 @@ func (_ *EchoPlugin) HandleMessage(msg *msg.Message, _ BridgeAPI) *msg.Message {
     return msg
 }
 
-func (_ *EchoPlugin) Subscriber(_ string) Subscriber {
-    return EmptySubscriber
-}
-
 func (_ *EchoPlugin) Term() {
     return
 }

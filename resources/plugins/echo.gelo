@@ -1,0 +1,9 @@
+inject-bridge-component logger
+
+command handler {sender message} {
+    logger log Received message from $sender
+    send message to io
+}
+
+handle io with handler
+

@@ -14,13 +14,13 @@ import (
 
 func (p *ConfigParser) listeners(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     if ac != 1 {
-        gelo.ArgumentError(vm, "listeners", "{body}", args)
+        gelo.ArgumentError(vm, "communicators", "{body}", args)
     }
     body := vm.API.QuoteOrElse(args.Value)
 
-    checkNotInSection(vm, "listeners")
+    checkNotInSection(vm, "communicators")
 
-    insideNamelessSection(vm, "listeners",
+    insideNamelessSection(vm, "communicators",
         func() {
             p.conf.Listeners = make(map[string]*conf.ListenerConf)
             vm.API.InvokeCmdOrElse(body, nil)
@@ -32,14 +32,14 @@ func (p *ConfigParser) listeners(vm *gelo.VM, args *gelo.List, ac uint) gelo.Wor
 
 func (p *ConfigParser) listener(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     if ac != 2 {
-        gelo.ArgumentError(vm, "listener", "<name> {body}", args)
+        gelo.ArgumentError(vm, "communicator", "<name> {body}", args)
     }
     name := args.Value.Ser().String()
     body := vm.API.QuoteOrElse(args.Next.Value)
 
-    checkInSection(vm, "listener", "listeners")
+    checkInSection(vm, "communicator", "communicators")
 
-    insideSection(vm, "listener", name,
+    insideSection(vm, "communicator", name,
         func() {
             p.conf.Listeners[name] = new(conf.ListenerConf)
             p.conf.Listeners[name].Name = name
@@ -58,7 +58,7 @@ func (p *ConfigParser) port(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     portType := args.Value.Ser().String()
     body := vm.API.QuoteOrElse(args.Next.Value)
 
-    listenerName := checkInSection(vm, "port", "listener")
+    listenerName := checkInSection(vm, "port", "communicator")
 
     insideSection(vm, "port", portType,
         func() {
@@ -69,51 +69,51 @@ func (p *ConfigParser) port(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
                 var addr net.Addr
 
                 // Try to resolve the address specified in the port configuration
-                if conf.TCPPortTypes[pt] || conf.UDPPortTypes[pt] {  // If port is network-related
-                    portHost, ok := d.StrGet("host")
+                if conf.TCPPortTypes[pt] || conf.UDPPortTypes[pt] { // If port is network-related
+                    portHost, ok := vm.API.ListOrElse(d.StrGet("host")).Value.Ser().String()
                     if !ok {
                         runtimeError(vm,
-                            "Port host address is not specified: listener %s, port %s",
+                            "Port host address is not specified: communicator %s, port %s",
                             listenerName, portType,
                         )
                     }
 
-                    portNum, ok := d.StrGet("port")
+                    portNum, ok := vm.API.ListOrElse(d.StrGet("port")).Value.Ser().String()
                     if !ok {
                         runtimeError(vm,
-                            "Port number is not specified: listener %s, port %s",
+                            "Port number is not specified: communicator %s, port %s",
                             listenerName, portType,
                         )
                     }
 
                     if conf.TCPPortTypes[pt] {
-                        if addr, err := net.ResolveTCPAddr(portType, portHost + ":" + portNum); err != nil {
+                        if addr, err := net.ResolveTCPAddr(portType, portHost+":"+portNum); err != nil {
                             runtimeError(vm,
-                                "Unable to resolve TCP address: %s: listener %s, port %s",
+                                "Unable to resolve TCP address: %s: communicator %s, port %s",
                                 err.Error(), listenerName, portType,
                             )
                         }
                     } else if conf.UDPPortTypes[pt] {
-                        if addr, err := net.ResolveUDPAddr(portType, portHost + ":" + portNum); err != nil {
+                        if addr, err := net.ResolveUDPAddr(portType, portHost+":"+portNum); err != nil {
                             runtimeError(vm,
-                                "Unable to resolve UDP address: %s: listener %s, port %s",
+                                "Unable to resolve UDP address: %s: communicator %s, port %s",
                                 err.Error(), listenerName, portType,
                             )
                         }
                     }
 
-                } else if conf.UnixPortTypes[pt] {  // If port is local
-                    portPath, ok := d.StrGet("path")
+                } else if conf.UnixPortTypes[pt] { // If port is local
+                    portPath, ok := vm.API.ListOrElse(d.StrGet("path")).Value.Ser().String()
                     if !ok {
                         runtimeError(vm,
-                            "Port file path is not specified: listener %s, port %s",
+                            "Port file path is not specified: communicator %s, port %s",
                             listenerName, portType,
                         )
                     }
 
                     if addr, err := net.ResolveUnixAddr(portType, portPath); err != nil {
                         runtimeError(vm,
-                            "Unable to resolve Unix address: %s: listener %s, port %s",
+                            "Unable to resolve Unix address: %s: communicator %s, port %s",
                             err.Error(), listenerName, portType,
                         )
                     }
@@ -125,11 +125,10 @@ func (p *ConfigParser) port(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
                     Addr: addr,
                 }
             } else {
-                runtimeError(vm, "Invalid port type: %s; listener %s", portType, listenerName)
+                runtimeError(vm, "Invalid port type: %s; communicator %s", portType, listenerName)
             }
         },
     )
 
     return nil
 }
-
