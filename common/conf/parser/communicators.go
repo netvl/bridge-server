@@ -12,7 +12,7 @@ import (
     "net"
 )
 
-func (p *ConfigParser) listeners(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
+func (p *ConfigParser) communicators(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     if ac != 1 {
         gelo.ArgumentError(vm, "communicators", "{body}", args)
     }
@@ -30,7 +30,7 @@ func (p *ConfigParser) listeners(vm *gelo.VM, args *gelo.List, ac uint) gelo.Wor
     return nil
 }
 
-func (p *ConfigParser) listener(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
+func (p *ConfigParser) communicator(vm *gelo.VM, args *gelo.List, ac uint) gelo.Word {
     if ac != 2 {
         gelo.ArgumentError(vm, "communicator", "<name> {body}", args)
     }

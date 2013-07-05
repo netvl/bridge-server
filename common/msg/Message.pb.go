@@ -14,10 +14,10 @@ var _ = &json.SyntaxError{}
 var _ = math.Inf
 
 type Message struct {
-	Name             *string     `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
-	Headers          []*Header   `protobuf:"bytes,2,rep,name=headers" json:"headers,omitempty"`
-	BodyParts        []*BodyPart `protobuf:"bytes,3,rep,name=bodyParts" json:"bodyParts,omitempty"`
-	XXX_unrecognized []byte      `json:"-"`
+    Name             *string     `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+    Headers          []*Header   `protobuf:"bytes,2,rep,name=headers" json:"headers,omitempty"`
+    BodyParts        []*BodyPart `protobuf:"bytes,3,rep,name=bodyParts" json:"bodyParts,omitempty"`
+    XXX_unrecognized []byte      `json:"-"`
 }
 
 func (this *Message) Reset()         { *this = Message{} }
@@ -25,16 +25,16 @@ func (this *Message) String() string { return proto.CompactTextString(this) }
 func (*Message) ProtoMessage()       {}
 
 func (this *Message) GetName() string {
-	if this != nil && this.Name != nil {
-		return *this.Name
-	}
-	return ""
+    if this != nil && this.Name != nil {
+        return *this.Name
+    }
+    return ""
 }
 
 type Header struct {
-	Name             *string `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
-	Value            *string `protobuf:"bytes,2,req,name=value" json:"value,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+    Name             *string `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+    Value            *string `protobuf:"bytes,2,req,name=value" json:"value,omitempty"`
+    XXX_unrecognized []byte  `json:"-"`
 }
 
 func (this *Header) Reset()         { *this = Header{} }
@@ -42,23 +42,23 @@ func (this *Header) String() string { return proto.CompactTextString(this) }
 func (*Header) ProtoMessage()       {}
 
 func (this *Header) GetName() string {
-	if this != nil && this.Name != nil {
-		return *this.Name
-	}
-	return ""
+    if this != nil && this.Name != nil {
+        return *this.Name
+    }
+    return ""
 }
 
 func (this *Header) GetValue() string {
-	if this != nil && this.Value != nil {
-		return *this.Value
-	}
-	return ""
+    if this != nil && this.Value != nil {
+        return *this.Value
+    }
+    return ""
 }
 
 type BodyPart struct {
-	Name             *string `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
-	Data             []byte  `protobuf:"bytes,2,req,name=data" json:"data,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+    Name             *string `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+    Data             []byte  `protobuf:"bytes,2,req,name=data" json:"data,omitempty"`
+    XXX_unrecognized []byte  `json:"-"`
 }
 
 func (this *BodyPart) Reset()         { *this = BodyPart{} }
@@ -66,17 +66,17 @@ func (this *BodyPart) String() string { return proto.CompactTextString(this) }
 func (*BodyPart) ProtoMessage()       {}
 
 func (this *BodyPart) GetName() string {
-	if this != nil && this.Name != nil {
-		return *this.Name
-	}
-	return ""
+    if this != nil && this.Name != nil {
+        return *this.Name
+    }
+    return ""
 }
 
 func (this *BodyPart) GetData() []byte {
-	if this != nil {
-		return this.Data
-	}
-	return nil
+    if this != nil {
+        return this.Data
+    }
+    return nil
 }
 
 func init() {

@@ -7,11 +7,10 @@
 package util_test
 
 import (
-    "testing"
-    . "launchpad.net/gocheck"
     "github.com/dpx-infinity/bridge-server/common/util"
+    . "launchpad.net/gocheck"
+    "testing"
 )
-
 
 func Test(t *testing.T) {
     TestingT(t)
@@ -35,4 +34,3 @@ func (_ MiscSuite) TestStringPatternMatching(c *C) {
         Equals, true)
     c.Assert(util.MatchStringSlicePattern(p2, []string{"a", "ddff", "b", "dkdkd"}), Equals, false)
 }
-

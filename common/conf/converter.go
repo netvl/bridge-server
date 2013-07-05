@@ -89,4 +89,3 @@ func convertDictSafe(d *gelo.Dict) (cm map[string]configElement, err error) {
 
     return convertDict(d), nil
 }
-

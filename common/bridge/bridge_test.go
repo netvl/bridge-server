@@ -41,11 +41,11 @@ func (_ BridgeSuite) TestLocalHandling(c *C) {
         },
         Plugins: map[string]*conf.PluginConf{
             "echo-plugin": &conf.PluginConf{
-                Name: "echo-plugin",
-                Plugin: "echo",
+                Name:      "echo-plugin",
+                Plugin:    "echo",
                 Listeners: []string{"local"},
                 Mediators: []string{},
-                Options: map[string][]string{"prefix": []string{"Echo"}},
+                Options:   map[string][]string{"prefix": []string{"Echo"}},
             },
         },
     }

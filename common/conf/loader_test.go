@@ -1,14 +1,14 @@
 package conf_test
 
 import (
+    "bytes"
     "github.com/dpx-infinity/bridge-server/common/conf"
-    "testing"
+    . "launchpad.net/gocheck"
     "log"
+    "net"
     "os"
     "strings"
-    . "launchpad.net/gocheck"
-    "bytes"
-    "net"
+    "testing"
 )
 
 var testConfListeners = `conf listeners {
@@ -40,7 +40,8 @@ var testConfListeners = `conf listeners {
     }
 }`
 
-type LoaderSuite struct {}
+type LoaderSuite struct{}
+
 var _ = Suite(&LoaderSuite{})
 
 func TestLoaderSuite(t *testing.T) {
@@ -72,9 +73,9 @@ func (_ *LoaderSuite) TestLoadingFromFile(c *C) {
         }
     }
     for _, lc := range cfg.Listeners {
-//        fmt.Printf("Listener %s:\n", ln)
+        //        fmt.Printf("Listener %s:\n", ln)
         for _, _ = range lc.Ports {
-//            fmt.Printf("\tPort type %s, port address %v\n", pc.Type, pc.Addr)
+            //            fmt.Printf("\tPort type %s, port address %v\n", pc.Type, pc.Addr)
         }
     }
 }

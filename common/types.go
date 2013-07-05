@@ -8,7 +8,6 @@ package common
 
 import (
     "github.com/dpx-infinity/bridge-server/common/conf"
-    "github.com/dpx-infinity/bridge-server/common/msg"
     "net"
 )
 
@@ -22,7 +21,6 @@ type Bridge interface {
 }
 
 type BridgeAPI interface {
-    Comm() Communicator
 }
 
 // ===================================================
@@ -88,7 +86,8 @@ type Handler func(net.Conn)
 // interfaces at once) it accepts messages incoming through network, routing them through its Peer interface
 // to all attached sockets.
 // It also accepts messages from any of its sockets, decoding value of 'Destination' header and trying
-// to send it through the interface it is configured on.
+// to send it through the interface it is configured on. If 'Destination' header is not present,
+// tries to send the message in some appropriate default way.
 type Communicator interface {
     Peer
     Start() error
@@ -102,12 +101,9 @@ type Communicator interface {
 // Plugin represents an entity which handles messages incoming from listeners
 // and performs some useful work on it. This interface is the main extension point
 // of bridge. Different plugins can do virtually anything.
-// Implementations of this interface should provide at least one socket named
-// 'input'; this socket will be connected to Listeners. Other available sockets may
-// be connected via configuration.
 type Plugin interface {
     Peer
     Name() string
-    Config(conf *conf.PluginConf, api BridgeAPI) error
+    Init(conf *conf.PluginConf, api BridgeAPI) error
     Term()
 }

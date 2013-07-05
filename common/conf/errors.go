@@ -14,7 +14,7 @@ import (
 // ConfigError is a configuration error, that is, some error occured at a specific
 // location inside the configuration file.
 type ConfigError struct {
-    Msg string
+    Msg      string
     Location string
 }
 
@@ -97,4 +97,3 @@ func (errs *ConfigErrors) Error() string {
 func (errs *ConfigErrors) Errors() []*ConfigError {
     return errs.Errors()
 }
-

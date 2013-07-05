@@ -7,14 +7,14 @@
 package msg
 
 import (
-    "io"
     "code.google.com/p/goprotobuf/proto"
-    "fmt"
     "encoding/binary"
+    "fmt"
+    "io"
 )
 
 type SerializeError struct {
-    msg string
+    msg   string
     cause error
 }
 
@@ -123,4 +123,3 @@ func Deserialize(r io.Reader) (*Message, error) {
 
     return msg, nil
 }
-

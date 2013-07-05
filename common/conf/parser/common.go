@@ -37,7 +37,7 @@ func (p *ConfigParser) discoverable(vm *gelo.VM, args *gelo.List, ac uint) gelo.
     // Check whether we're in common section
     checkInSection(vm, "discoverable", "common")
 
-    args = args.Next  // Skip first 'at' symbol
+    args = args.Next // Skip first 'at' symbol
 
     // Collect all port numbers from the arguments
     var ports []uint16

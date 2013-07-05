@@ -9,8 +9,8 @@ package bridge
 import (
     . "github.com/dpx-infinity/bridge-server/common"
     "github.com/dpx-infinity/bridge-server/common/conf"
-    "github.com/dpx-infinity/bridge-server/common/net/listener"
     "github.com/dpx-infinity/bridge-server/common/net/comm"
+    "github.com/dpx-infinity/bridge-server/common/net/listener"
     "github.com/dpx-infinity/bridge-server/common/repo"
     "log"
 )

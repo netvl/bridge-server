@@ -11,11 +11,11 @@ import (
     "github.com/dpx-infinity/bridge-server/common/mediators"
 )
 
-type MediatorMaker func () Mediator
+type MediatorMaker func() Mediator
 
-var mediatorsRepo = map[string]MediatorMaker {
+var mediatorsRepo = map[string]MediatorMaker{
     "multiway": func() Mediator { return mediators.NewMultiway() },
-    "oneway": func() Mediator { return mediators.NewOneway() },
+    "oneway":   func() Mediator { return mediators.NewOneway() },
 }
 
 func GetMediator(name string) Mediator {

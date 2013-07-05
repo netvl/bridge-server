@@ -7,10 +7,10 @@
 package listener
 
 import (
+    . "github.com/dpx-infinity/bridge-server/common"
     "log"
     "net"
     "syscall"
-    . "github.com/dpx-infinity/bridge-server/common"
 )
 
 // StopChan represents a channel used to tell to some process that it should stop its work.

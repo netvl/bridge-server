@@ -9,6 +9,8 @@ package parser
 import (
     "code.google.com/p/gelo"
     "github.com/dpx-infinity/bridge-server/common/conf"
+    "io"
+    "os"
 )
 
 type ConfigParser struct {
@@ -25,6 +27,25 @@ func (p *ConfigParser) Init() {
     p.vm.RegisterBundle(p.commands())
 }
 
+func (p *ConfigParser) Load(src io.Reader) error {
+    _, err := p.vm.Run(src, nil)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func (p *ConfigParser) LoadFromFile(file string) error {
+    f, err := os.Open(file)
+    if err != nil {
+        return err
+    }
+    defer f.Close()
+
+    return p.Load(f)
+}
+
 func (p *ConfigParser) Term() {
     p.vm.Destroy()
 }
@@ -36,8 +57,8 @@ func (p *ConfigParser) commands() map[string]interface{} {
         "present-services":   p.presentServices,
         "start-debug-plugin": p.startDebugPlugin,
 
-        "listeners": p.listeners,
-        "listener":  p.listener,
+        "communicators": p.communicators,
+        "communicator":  p.communicator,
         "port":      p.port,
 
         "plugins": p.plugins,

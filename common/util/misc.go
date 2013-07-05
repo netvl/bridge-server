@@ -30,9 +30,9 @@ func MatchStringSlicePattern(source []string, args ...interface{}) bool {
         // Nil pattern matches anything
         return true
     } else if len(pattern) == 0 {
-        // Empty pattern does not match anything
+        // Empty pattern matches nothing
         return false
-    } else if  pl - sl > 1 || (pl - sl == 1 && pattern[pl-1] != nil) {
+    } else if pl-sl > 1 || (pl-sl == 1 && pattern[pl-1] != nil) {
         // If source is shorter than pattern by more than 1 element, or if it is shorter by 1 element and pattern's
         // last element is not nil, then there is no match
         return false
@@ -60,10 +60,9 @@ func MatchStringSlicePattern(source []string, args ...interface{}) bool {
         }
     }
 
-    if sl == pl || sl >= pl - 1 && pattern[pl-1] == nil {
+    if sl == pl || sl >= pl-1 && pattern[pl-1] == nil {
         return true
     }
 
     return false
 }
-

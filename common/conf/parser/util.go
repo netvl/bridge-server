@@ -8,8 +8,8 @@ package parser
 
 import (
     "code.google.com/p/gelo"
-    "strings"
     "fmt"
+    "strings"
 )
 
 func runtimeError(vm *gelo.VM, fmt string, args ...interface{}) {

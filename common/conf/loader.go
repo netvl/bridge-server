@@ -2,9 +2,9 @@ package conf
 
 import (
     "code.google.com/p/gelo"
+    "io"
     "log"
     "os"
-    "io"
 )
 
 func LoadConfigFromReader(src io.Reader) (*Conf, error) {
