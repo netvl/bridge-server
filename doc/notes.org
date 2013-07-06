@@ -1,0 +1,23 @@
+#+TITLE: Bridge notes
+
+* Configuration
+** Communicators
+When reading communicator port address, it is converted/resolved to proper IP
+address and then checked across all network interface addresses. If it is not
+present among these addresses, it is an error. If it is present, its subnet
+mask is taken too.
+
+* Discovery
+Bridge nodes can discover each other across the network. Discovery behavior
+configuration is divided in two parts - discovery and exposition
+configuration. There is also one common setting, a list of *discovery ports*.
+
+Discovery configuration specifies the following:
+ - on which interfaces the discovery should be performed;
+ - in which subnets the discovery should be performed;
+ - on which addresses the discovery should be performed (*statics*);
+ - at which interval of time the discovery should be performed (in ms).
+
+Exposure configuration specifies the following:
+ - on which interfaces the node should be exposed;
+ - on which addresses the node should be exposed.

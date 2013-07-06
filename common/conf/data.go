@@ -40,10 +40,13 @@ type PluginConf struct {
 
 // DiscoveryConf represents configuration of the discovery module.
 type DiscoveryConf struct {
-    Ports    []int
-    Ifaces   []string
-    Networks []*net.IPNet
-    Statics  []string
+    Ports             []int
+    DiscoveryInterval uint
+    DiscoveryIfaces   []string
+    DiscoveryNetworks []*net.IPNet
+    ExposeIfaces      []string
+    ExposeNetworks    []*net.IPNet
+    Statics           []*net.TCPAddr
 }
 
 // ===========================================

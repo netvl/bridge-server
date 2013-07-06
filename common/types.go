@@ -27,21 +27,22 @@ type Bridge interface {
 // Discoverer is able to discover other bridges given a slice of network interface names,
 // a slice of subnets and a slice of ports.
 type Discoverer interface {
-    Start(conf *conf.DiscoveryConf) error
+    Start() error
     Stop()
     Nodes() []Node
 }
 
 // Lighthouse listens on the specified ports and replies on discovery requests.
 type Lighthouse interface {
-    Start(conf *conf.DiscoveryConf) error
+    Start() error
     Stop()
 }
 
 // Node represents a single bridge instance somewhere on the net.
 type Node interface {
     Name() string
-    Addr() *net.TCPAddr
+    Addr() *net.IPAddr
+    Ports() []int
 }
 
 // ===========================================
