@@ -66,6 +66,7 @@ type Link interface {
 // Peer represents one side of communication. Peer has a number of sockets (named endpoints)
 // to which one side of a Link can be connected. Any number of links can be connected to the single socket;
 // when more than one link is connected to single socket, its sinks and sources are aggregated.
+// Depending on the state of the peer, it may ignore Connect request.
 type Peer interface {
     // Sockets returns a "set" of socket names this peer have. Note that implementors may return
     // dynamic set of socket names, i.e. the set returned by this method may vary from call to call.

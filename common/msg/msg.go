@@ -33,13 +33,13 @@ func NewError(cause error, msg string, args ...interface{}) error {
     return &SerializeError{fmt.Sprintf(msg, args...), cause}
 }
 
-func (msg *Message) Header(name string) string {
+func (msg *Message) Header(name string) *string {
     for _, h := range msg.Headers {
         if h.GetName() == name {
-            return h.GetValue()
+            return &h.GetValue()
         }
     }
-    return ""
+    return nil
 }
 
 func (msg *Message) SetHeader(name string, value string) {
