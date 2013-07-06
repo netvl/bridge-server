@@ -20,20 +20,32 @@ type Bridge interface {
     Stop()
 }
 
-type BridgeAPI interface {
+// ===============================================
+// ================== DISCOVERY ==================
+// ===============================================
+
+// Discoverer is able to discover other bridges given a slice of network interface names,
+// a slice of subnets and a slice of ports.
+type Discoverer interface {
+    Start(conf *conf.DiscoveryConf) error
+    Stop()
+    Nodes() []Node
 }
 
-// ===================================================
-// ================== COMMUNICATORS ==================
-// ===================================================
+// Lighthouse listens on the specified ports and replies on discovery requests.
+type Lighthouse interface {
+    Start(conf *conf.DiscoveryConf) error
+    Stop()
+}
 
+// Node represents a single bridge instance somewhere on the net.
 type Node interface {
     Name() string
-    Addr() net.IPAddr
+    Addr() *net.TCPAddr
 }
 
 // ===========================================
-// ================== PORTS ==================
+// ================== LINKS ==================
 // ===========================================
 
 // Chan represents a channel which can transfer objects of any type in both ways.
@@ -79,10 +91,6 @@ type Peer interface {
 // ================== COMMUNICATORS ==================
 // ===================================================
 
-// Handler is a function which is able to handle standard connection.
-// It is supposed that the handler itself does not close the connection.
-type Handler func(net.Conn)
-
 // Communicator exposes networking interface to the plugins. When started on host network interface (or on all
 // interfaces at once) it accepts messages incoming through network, routing them through its Peer interface
 // to all attached sockets.
@@ -91,7 +99,7 @@ type Handler func(net.Conn)
 // tries to send the message in some appropriate default way.
 type Communicator interface {
     Peer
-    Start() error
+    Start(conf *conf.CommunicatorConf) error
     Stop()
 }
 
@@ -105,6 +113,7 @@ type Communicator interface {
 type Plugin interface {
     Peer
     Name() string
-    Init(conf *conf.PluginConf, api BridgeAPI) error
+    Class() string
+    Init(conf map[string][]string) error
     Term()
 }
